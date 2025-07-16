@@ -66,6 +66,29 @@ body {
   50% { opacity: 1; }
 }
 
+.webpage-context {
+  padding: 8px 10px;
+  background-color: #f9f9f9;
+  border-top: 1px solid #eee;
+  font-size: 14px;
+}
+
+#webpage-checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+#include-webpage {
+  margin-right: 8px;
+}
+
+#webpage-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .input-container {
   display: flex;
   padding: 10px;

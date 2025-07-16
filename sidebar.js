@@ -2,11 +2,71 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatContainer = document.getElementById('chat-container');
   const userInput = document.getElementById('user-input');
   const sendButton = document.getElementById('send-button');
+  const webpageCheckbox = document.getElementById('include-webpage');
+  const webpageTitle = document.getElementById('webpage-title');
   
   // Store conversation history
   const conversationHistory = [
     { role: 'system', content: 'You are a helpful assistant.' }
   ];
+  
+  let currentWebpageInfo = {
+    title: '',
+    url: '',
+    content: ''
+  };
+  
+  // Get current tab information
+  function updateCurrentTabInfo() {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs && tabs.length > 0) {
+        const activeTab = tabs[0];
+        currentWebpageInfo.title = activeTab.title || 'Current webpage';
+        currentWebpageInfo.url = activeTab.url || '';
+        
+        // Update the checkbox label with the webpage title
+        webpageTitle.textContent = `Include "${currentWebpageInfo.title}"`;
+        
+        // If checkbox is checked, fetch the content
+        if (webpageCheckbox.checked) {
+          fetchWebpageContent();
+        }
+      }
+    });
+  }
+  
+  // Fetch webpage content from the active tab
+  function fetchWebpageContent() {
+    if (!currentWebpageInfo.url) return;
+    
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs && tabs.length > 0) {
+        const activeTab = tabs[0];
+        
+        // Execute script to get the page content
+        chrome.scripting.executeScript({
+          target: { tabId: activeTab.id },
+          function: () => {
+            return document.body.innerText;
+          }
+        }, (results) => {
+          if (results && results[0] && results[0].result) {
+            currentWebpageInfo.content = results[0].result;
+          }
+        });
+      }
+    });
+  }
+  
+  // Initialize the extension
+  updateCurrentTabInfo();
+  
+  // Update tab info when the checkbox is clicked
+  webpageCheckbox.addEventListener('change', () => {
+    if (webpageCheckbox.checked) {
+      updateCurrentTabInfo();
+    }
+  });
   
   // Add initial bot message
   addBotMessage('Hello! How can I assist you today?');
@@ -33,6 +93,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Add user message to conversation history
     conversationHistory.push({ role: 'user', content: message });
+    
+    // If checkbox is checked, add webpage context to the conversation
+    if (webpageCheckbox.checked && currentWebpageInfo.content) {
+      const webpageContext = {
+        role: 'system',
+        content: `The user is currently on the webpage titled "${currentWebpageInfo.title}" with URL ${currentWebpageInfo.url}. 
+The content of the webpage is: ${currentWebpageInfo.content.substring(0, 15000)}` // Limiting content length
+      };
+      
+      // Insert webpage context right before the user's latest message
+      conversationHistory.splice(conversationHistory.length - 1, 0, webpageContext);
+    }
 
     // Create a bot message element for the streaming response
     const botMessageDiv = document.createElement('div');
@@ -43,6 +115,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Call ChatGPT API via local server with streaming
     fetchChatGPTResponseStreaming(botMessageDiv, conversationHistory);
+    
+    // Remove the webpage context from history after sending
+    if (webpageCheckbox.checked && currentWebpageInfo.content) {
+      // Find and remove the webpage context message we added
+      const contextIndex = conversationHistory.findIndex(msg => 
+        msg.role === 'system' && msg.content.includes(`The user is currently on the webpage titled "${currentWebpageInfo.title}"`)
+      );
+      
+      if (contextIndex !== -1) {
+        conversationHistory.splice(contextIndex, 1);
+      }
+    }
   }
 
   // Function to add user message to chat
