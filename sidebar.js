@@ -3,8 +3,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const userInput = document.getElementById('user-input');
   const sendButton = document.getElementById('send-button');
   
+  // Store conversation history
+  const conversationHistory = [
+    { role: 'system', content: 'You are a helpful assistant.' }
+  ];
+  
   // Add initial bot message
   addBotMessage('Hello! How can I assist you today?');
+  // Add the initial message to history
+  conversationHistory.push({ role: 'assistant', content: 'Hello! How can I assist you today?' });
 
   // Event listeners
   sendButton.addEventListener('click', sendMessage);
@@ -23,6 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add user message to chat
     addUserMessage(message);
     userInput.value = '';
+    
+    // Add user message to conversation history
+    conversationHistory.push({ role: 'user', content: message });
 
     // Create a bot message element for the streaming response
     const botMessageDiv = document.createElement('div');
@@ -32,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollToBottom();
 
     // Call ChatGPT API via local server with streaming
-    fetchChatGPTResponseStreaming(message, botMessageDiv);
+    fetchChatGPTResponseStreaming(message, botMessageDiv, conversationHistory);
   }
 
   // Function to add user message to chat
@@ -59,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Function to call ChatGPT API via local server (non-streaming)
-  async function fetchChatGPTResponse(message) {
+  async function fetchChatGPTResponse(message, messageHistory) {
     try {
       const response = await fetch('http://localhost:8000/api/v1/chat/completions', {
         method: 'POST',
@@ -68,10 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: JSON.stringify({
           model: 'gpt-3.5-turbo',
-          messages: [
-            { role: 'system', content: 'You are a helpful assistant.' },
-            { role: 'user', content: message }
-          ],
+          messages: messageHistory,
           temperature: 0.7,
           max_tokens: 1000,
           stream: false,
@@ -93,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Function to call ChatGPT API via local server with streaming support
-  async function fetchChatGPTResponseStreaming(message, messageElement) {
+  async function fetchChatGPTResponseStreaming(message, messageElement, messageHistory) {
     try {
       // Add streaming class for the blinking cursor effect
       messageElement.classList.add('streaming');
@@ -105,10 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: JSON.stringify({
           model: 'gpt-3.5-turbo',
-          messages: [
-            { role: 'system', content: 'You are a helpful assistant.' },
-            { role: 'user', content: message }
-          ],
+          messages: messageHistory,
           temperature: 0.7,
           max_tokens: 1000,
           stream: true,
@@ -158,6 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
+      
+      // Add assistant response to conversation history
+      conversationHistory.push({ role: 'assistant', content: fullContent });
       
       // Remove streaming class when done
       messageElement.classList.remove('streaming');
