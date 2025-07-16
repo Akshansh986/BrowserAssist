@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const webpageContext = {
         role: 'system',
         content: `The user is currently on the webpage titled "${currentWebpageInfo.title}" with URL ${currentWebpageInfo.url}. 
-The content of the webpage is: ${currentWebpageInfo.content.substring(0, 15000)}` // Limiting content length
+The content of the webpage is: ${currentWebpageInfo.content.substring(0, 150000)}` // Limiting content length
       };
       
       // Insert webpage context right before the user's latest message
