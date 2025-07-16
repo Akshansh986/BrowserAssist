@@ -55,6 +55,17 @@ body {
   align-self: flex-start;
 }
 
+.bot-message.streaming::after {
+  content: '|';
+  display: inline-block;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
 .input-container {
   display: flex;
   padding: 10px;

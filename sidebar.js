@@ -2,41 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatContainer = document.getElementById('chat-container');
   const userInput = document.getElementById('user-input');
   const sendButton = document.getElementById('send-button');
-
-  // Load API key from storage
-  let apiKey = '';
-  chrome.storage.sync.get('openai_api_key', (data) => {
-    if (data.openai_api_key) {
-      apiKey = data.openai_api_key;
-    } else {
-      // If no API key is found, prompt the user to enter one
-      promptForApiKey();
-    }
-  });
-
-  // Function to prompt for API key
-  function promptForApiKey() {
-    chatContainer.innerHTML = `
-      <div class="api-key-container">
-        <p>Please enter your OpenAI API key to use ChatGPT:</p>
-        <input type="password" id="api-key-input" placeholder="sk-...">
-        <button id="save-api-key">Save</button>
-      </div>
-    `;
-
-    document.getElementById('save-api-key').addEventListener('click', () => {
-      const keyInput = document.getElementById('api-key-input');
-      if (keyInput.value.trim().startsWith('sk-')) {
-        apiKey = keyInput.value.trim();
-        chrome.storage.sync.set({ 'openai_api_key': apiKey }, () => {
-          chatContainer.innerHTML = '';
-          addBotMessage('Hello! How can I assist you today?');
-        });
-      } else {
-        alert('Please enter a valid OpenAI API key starting with "sk-"');
-      }
-    });
-  }
+  
+  // Add initial bot message
+  addBotMessage('Hello! How can I assist you today?');
 
   // Event listeners
   sendButton.addEventListener('click', sendMessage);
@@ -56,27 +24,15 @@ document.addEventListener('DOMContentLoaded', () => {
     addUserMessage(message);
     userInput.value = '';
 
-    // Show typing indicator
-    const typingIndicator = document.createElement('div');
-    typingIndicator.className = 'typing-indicator';
-    typingIndicator.innerHTML = '<span></span><span></span><span></span>';
-    chatContainer.appendChild(typingIndicator);
+    // Create a bot message element for the streaming response
+    const botMessageDiv = document.createElement('div');
+    botMessageDiv.className = 'message bot-message';
+    botMessageDiv.textContent = '';
+    chatContainer.appendChild(botMessageDiv);
     scrollToBottom();
 
-    // Call ChatGPT API
-    fetchChatGPTResponse(message)
-      .then(response => {
-        // Remove typing indicator
-        chatContainer.removeChild(typingIndicator);
-        // Add bot response
-        addBotMessage(response);
-      })
-      .catch(error => {
-        // Remove typing indicator
-        chatContainer.removeChild(typingIndicator);
-        // Show error
-        addBotMessage(`Error: ${error.message}`);
-      });
+    // Call ChatGPT API via local server with streaming
+    fetchChatGPTResponseStreaming(message, botMessageDiv);
   }
 
   // Function to add user message to chat
@@ -102,18 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
 
-  // Function to call ChatGPT API
+  // Function to call ChatGPT API via local server (non-streaming)
   async function fetchChatGPTResponse(message) {
-    if (!apiKey) {
-      throw new Error('API key not found. Please set your OpenAI API key.');
-    }
-
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch('http://localhost:8000/api/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           model: 'gpt-3.5-turbo',
@@ -121,13 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
             { role: 'system', content: 'You are a helpful assistant.' },
             { role: 'user', content: message }
           ],
-          max_tokens: 1000
+          temperature: 0.7,
+          max_tokens: 1000,
+          stream: false,
+          password: 'Webkiosk@1'
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to get response from ChatGPT');
+        throw new Error(errorData.error || 'Failed to get response from ChatGPT');
       }
 
       const data = await response.json();
@@ -137,9 +91,84 @@ document.addEventListener('DOMContentLoaded', () => {
       throw error;
     }
   }
+  
+  // Function to call ChatGPT API via local server with streaming support
+  async function fetchChatGPTResponseStreaming(message, messageElement) {
+    try {
+      // Add streaming class for the blinking cursor effect
+      messageElement.classList.add('streaming');
+      
+      const response = await fetch('http://localhost:8000/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant.' },
+            { role: 'user', content: message }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000,
+          stream: true,
+          password: 'Webkiosk@1'
+        })
+      });
 
-  // Add initial bot message
-  if (apiKey) {
-    addBotMessage('Hello! How can I assist you today?');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to get response from ChatGPT');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let fullContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Process the chunk
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data:')) {
+            const data = line.slice(5).trim();
+            
+            if (data === '[DONE]') {
+              break;
+            }
+            
+            try {
+              const parsedData = JSON.parse(data);
+              
+              if (parsedData.choices && parsedData.choices.length > 0) {
+                const choice = parsedData.choices[0];
+                if (choice.delta && choice.delta.content) {
+                  fullContent += choice.delta.content;
+                  messageElement.textContent = fullContent;
+                  scrollToBottom();
+                }
+              }
+            } catch (e) {
+              console.error('Error parsing SSE data:', e);
+            }
+          }
+        }
+      }
+      
+      // Remove streaming class when done
+      messageElement.classList.remove('streaming');
+      
+      return fullContent;
+    } catch (error) {
+      console.error('Error calling streaming ChatGPT API:', error);
+      messageElement.textContent = `Error: ${error.message}`;
+      // Remove streaming class in case of error
+      messageElement.classList.remove('streaming');
+      throw error;
+    }
   }
 }); 
