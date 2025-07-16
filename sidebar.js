@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollToBottom();
 
     // Call ChatGPT API via local server with streaming
-    fetchChatGPTResponseStreaming(message, botMessageDiv, conversationHistory);
+    fetchChatGPTResponseStreaming(botMessageDiv, conversationHistory);
   }
 
   // Function to add user message to chat
@@ -67,40 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function scrollToBottom() {
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
-
-  // Function to call ChatGPT API via local server (non-streaming)
-  async function fetchChatGPTResponse(message, messageHistory) {
-    try {
-      const response = await fetch('http://localhost:8000/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: messageHistory,
-          temperature: 0.7,
-          max_tokens: 1000,
-          stream: false,
-          password: 'Webkiosk@1'
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get response from ChatGPT');
-      }
-
-      const data = await response.json();
-      return data.choices[0].message.content;
-    } catch (error) {
-      console.error('Error calling ChatGPT API:', error);
-      throw error;
-    }
-  }
   
   // Function to call ChatGPT API via local server with streaming support
-  async function fetchChatGPTResponseStreaming(message, messageElement, messageHistory) {
+  async function fetchChatGPTResponseStreaming(messageElement, messageHistory) {
     try {
       // Add streaming class for the blinking cursor effect
       messageElement.classList.add('streaming');
@@ -111,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4.1-nano',
           messages: messageHistory,
           temperature: 0.7,
           max_tokens: 1000,
