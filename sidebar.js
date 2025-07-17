@@ -118,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tabs && tabs.length > 0) {
         const activeTab = tabs[0];
         
+        console.log(`Active tab updated: ${activeTab.title} (ID: ${activeTab.id})`);
+        
         // Update to new page info
         currentWebpageInfo.title = activeTab.title || 'Current webpage';
         currentWebpageInfo.url = activeTab.url || '';
@@ -133,20 +135,65 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchWebpageContent(tabId, url) {
     return new Promise((resolve, reject) => {
       try {
-        chrome.scripting.executeScript({
-          target: { tabId: tabId },
-          function: () => {
-            return document.body.innerText;
-          }
-        }, (results) => {
+        // First check if the tab still exists
+        chrome.tabs.get(tabId, (tab) => {
           if (chrome.runtime.lastError) {
-            console.error('Error fetching content:', chrome.runtime.lastError);
-            resolve(''); // Tab might be closed or inaccessible
-          } else if (results && results[0] && results[0].result) {
-            resolve(results[0].result);
-          } else {
+            console.error('Tab no longer exists:', chrome.runtime.lastError);
             resolve('');
+            return;
           }
+          
+          // Tab exists, try to execute script
+          chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            function: () => {
+              // Try multiple methods to get the most text content
+              try {
+                // Get text from main content areas if they exist
+                const mainContent = document.querySelector('main') || 
+                                   document.querySelector('article') || 
+                                   document.querySelector('#content') || 
+                                   document.querySelector('.content');
+                
+                if (mainContent) {
+                  return {
+                    success: true,
+                    content: mainContent.innerText,
+                    source: 'main-content'
+                  };
+                }
+                
+                // Fall back to body text
+                return {
+                  success: true,
+                  content: document.body.innerText,
+                  source: 'body'
+                };
+              } catch (error) {
+                return {
+                  success: false,
+                  error: error.toString()
+                };
+              }
+            }
+          }, (results) => {
+            if (chrome.runtime.lastError) {
+              console.error('Error fetching content:', chrome.runtime.lastError);
+              resolve(''); // Tab might be inaccessible (e.g., chrome:// pages)
+            } else if (results && results[0] && results[0].result) {
+              const result = results[0].result;
+              if (result.success) {
+                console.log(`Content successfully fetched for tab ${tabId} using ${result.source}`);
+                resolve(result.content);
+              } else {
+                console.error('Script execution failed:', result.error);
+                resolve('');
+              }
+            } else {
+              console.error('No results returned from executeScript');
+              resolve('');
+            }
+          });
         });
       } catch (error) {
         console.error('Error executing script:', error);
@@ -281,9 +328,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add user message to conversation history
     conversationHistory.push({ role: 'user', content: message });
     
+    // Create a bot message element for the streaming response
+    const botMessageDiv = document.createElement('div');
+    botMessageDiv.className = 'message bot-message';
+    botMessageDiv.textContent = '';
+    chatContainer.appendChild(botMessageDiv);
+    scrollToBottom();
+    
+    // Check for permissions first
+    try {
+      // This will prompt for permissions if needed
+      await chrome.permissions.request({
+        permissions: ['scripting'],
+        origins: ['<all_urls>']
+      });
+    } catch (error) {
+      console.error('Permission request failed:', error);
+    }
+    
     // Get selected webpages and fetch their content
     const selectedWebpages = savedWebpages.filter(page => page.selected);
     let contextContent = '';
+    
+    // Add current tab to the selected webpages if it's checked but not in savedWebpages
+    const isCurrentPageSaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
+    if (webpageCheckbox.checked && !isCurrentPageSaved && currentWebpageInfo.tabId) {
+      selectedWebpages.push({
+        title: currentWebpageInfo.title,
+        url: currentWebpageInfo.url,
+        tabId: currentWebpageInfo.tabId,
+        selected: true
+      });
+    }
     
     if (selectedWebpages.length > 0) {
       contextContent = `The user is browsing the following webpages:\n\n`;
@@ -293,6 +369,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const page = selectedWebpages[i];
         let content = '';
         
+        console.log(`Attempting to fetch content for tab ${page.tabId} (${page.title})`);
+        
         // Try to fetch content from the tab if it's still open
         if (page.tabId) {
           content = await fetchWebpageContent(page.tabId, page.url);
@@ -300,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // If we couldn't get content (tab closed or error), provide a message
         if (!content) {
-          content = `[Content unavailable - tab may be closed]`;
+          content = `[Content unavailable - tab may be closed or is on a restricted page]`;
         }
         
         contextContent += `Page ${i + 1}: "${page.title}" (${page.url})\n`;
@@ -317,13 +395,6 @@ document.addEventListener('DOMContentLoaded', () => {
         conversationHistory.splice(conversationHistory.length - 1, 0, webpageContext);
       }
     }
-
-    // Create a bot message element for the streaming response
-    const botMessageDiv = document.createElement('div');
-    botMessageDiv.className = 'message bot-message';
-    botMessageDiv.textContent = '';
-    chatContainer.appendChild(botMessageDiv);
-    scrollToBottom();
 
     // Call ChatGPT API via local server with streaming
     fetchChatGPTResponseStreaming(botMessageDiv, conversationHistory);

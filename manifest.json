@@ -3,7 +3,7 @@
   "name": "ChatGPT Sidebar",
   "version": "1.0",
   "description": "Access ChatGPT from a sidebar in your browser",
-  "permissions": ["sidePanel", "storage", "tabs", "scripting"],
+  "permissions": ["sidePanel", "storage", "tabs", "scripting", "activeTab"],
   "host_permissions": [
     "http://localhost:8000/",
     "<all_urls>"
