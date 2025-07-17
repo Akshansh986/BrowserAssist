@@ -4,31 +4,141 @@ document.addEventListener('DOMContentLoaded', () => {
   const sendButton = document.getElementById('send-button');
   const webpageCheckbox = document.getElementById('include-webpage');
   const webpageTitle = document.getElementById('webpage-title');
+  const savedPagesContainer = document.getElementById('saved-pages-container');
   
   // Store conversation history
   const conversationHistory = [
     { role: 'system', content: 'You are a helpful assistant.' }
   ];
   
+  // Current webpage info
   let currentWebpageInfo = {
     title: '',
     url: '',
     content: ''
   };
   
+  // Saved webpages array
+  let savedWebpages = [];
+  
+  // Load saved webpages from storage
+  function loadSavedWebpages() {
+    chrome.storage.local.get('savedWebpages', (result) => {
+      if (result.savedWebpages) {
+        savedWebpages = result.savedWebpages;
+        renderSavedWebpages();
+        checkCurrentPageStatus();
+      } else {
+        // Initialize empty array if nothing is saved
+        savedWebpages = [];
+        saveWebpagesToStorage();
+      }
+    });
+  }
+  
+  // Save webpages to storage
+  function saveWebpagesToStorage() {
+    chrome.storage.local.set({ savedWebpages }, () => {
+      console.log('Saved webpages updated:', savedWebpages.length);
+    });
+  }
+  
+  // Render saved webpages in the UI
+  function renderSavedWebpages() {
+    savedPagesContainer.innerHTML = '';
+    
+    if (savedWebpages.length === 0) {
+      const emptyMessage = document.createElement('div');
+      emptyMessage.className = 'empty-pages-message';
+      emptyMessage.textContent = 'No saved webpages yet';
+      savedPagesContainer.appendChild(emptyMessage);
+      return;
+    }
+    
+    savedWebpages.forEach((page, index) => {
+      const pageItem = document.createElement('div');
+      pageItem.className = 'saved-page-item';
+      
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = page.selected;
+      checkbox.addEventListener('change', () => {
+        savedWebpages[index].selected = checkbox.checked;
+        saveWebpagesToStorage();
+      });
+      
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'saved-page-title';
+      titleSpan.textContent = page.title;
+      titleSpan.title = `${page.title} (${page.url})`;
+      
+      const removeButton = document.createElement('span');
+      removeButton.className = 'remove-page';
+      removeButton.textContent = '✕';
+      removeButton.title = 'Remove this page';
+      removeButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        savedWebpages.splice(index, 1);
+        saveWebpagesToStorage();
+        renderSavedWebpages();
+        checkCurrentPageStatus();
+      });
+      
+      pageItem.appendChild(checkbox);
+      pageItem.appendChild(titleSpan);
+      pageItem.appendChild(removeButton);
+      
+      savedPagesContainer.appendChild(pageItem);
+    });
+  }
+  
+  // Check if current page is already saved
+  function checkCurrentPageStatus() {
+    if (!currentWebpageInfo.url) return;
+    
+    const alreadySaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
+    
+    // Always enable the checkbox, even if already saved
+    webpageCheckbox.disabled = false;
+    
+    // If already saved, check the checkbox if the saved version is selected
+    if (alreadySaved) {
+      const savedPage = savedWebpages.find(page => page.url === currentWebpageInfo.url);
+      webpageCheckbox.checked = savedPage.selected;
+      webpageTitle.textContent = `Include "${currentWebpageInfo.title}"`;
+    } else {
+      webpageCheckbox.checked = false;
+      webpageTitle.textContent = `Include "${currentWebpageInfo.title}"`;
+    }
+  }
+  
   // Get current tab information
   function updateCurrentTabInfo() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs && tabs.length > 0) {
         const activeTab = tabs[0];
+        
+        // If we had a previous page and it was checked but not saved, save it
+        if (currentWebpageInfo.url && 
+            webpageCheckbox.checked && 
+            currentWebpageInfo.content &&
+            currentWebpageInfo.url !== activeTab.url &&
+            !savedWebpages.some(page => page.url === currentWebpageInfo.url)) {
+          
+          console.log('Saving previous page before switching:', currentWebpageInfo.title);
+          saveCurrentWebpage();
+        }
+        
+        // Update to new page info
         currentWebpageInfo.title = activeTab.title || 'Current webpage';
         currentWebpageInfo.url = activeTab.url || '';
+        currentWebpageInfo.content = ''; // Clear content when tab changes
         
-        // Update the checkbox label with the webpage title
-        webpageTitle.textContent = `Include "${currentWebpageInfo.title}"`;
+        // Update the checkbox label with the webpage title and check status
+        checkCurrentPageStatus();
         
-        // If checkbox is checked, fetch the content
-        if (webpageCheckbox.checked) {
+        // If checkbox is checked for this new page but we don't have content, fetch it
+        if (webpageCheckbox.checked && !currentWebpageInfo.content) {
           fetchWebpageContent();
         }
       }
@@ -52,21 +162,101 @@ document.addEventListener('DOMContentLoaded', () => {
         }, (results) => {
           if (results && results[0] && results[0].result) {
             currentWebpageInfo.content = results[0].result;
+            console.log('Content fetched for:', currentWebpageInfo.title);
+            
+            // If this page is already in saved pages, update its content
+            const existingPage = savedWebpages.find(page => page.url === currentWebpageInfo.url);
+            if (existingPage) {
+              existingPage.content = currentWebpageInfo.content;
+              saveWebpagesToStorage();
+            }
           }
         });
       }
     });
   }
   
-  // Initialize the extension
-  updateCurrentTabInfo();
+  // Save current webpage
+  function saveCurrentWebpage() {
+    if (!currentWebpageInfo.url || !currentWebpageInfo.content) return;
+    
+    // Check if webpage is already saved
+    const existingIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
+    
+    if (existingIndex !== -1) {
+      // Update existing page
+      savedWebpages[existingIndex].title = currentWebpageInfo.title;
+      savedWebpages[existingIndex].content = currentWebpageInfo.content;
+      savedWebpages[existingIndex].selected = true;
+    } else {
+      // Add new webpage
+      savedWebpages.push({
+        title: currentWebpageInfo.title,
+        url: currentWebpageInfo.url,
+        content: currentWebpageInfo.content,
+        selected: true,
+        addedAt: new Date().toISOString()
+      });
+    }
+    
+    saveWebpagesToStorage();
+    renderSavedWebpages();
+  }
   
-  // Update tab info when the checkbox is clicked
-  webpageCheckbox.addEventListener('change', () => {
+  // Handle webpage checkbox changes
+  function handleWebpageCheckboxChange() {
+    const isCurrentPageSaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
+    
     if (webpageCheckbox.checked) {
-      updateCurrentTabInfo();
+      // If it's already saved, just update the selection status
+      if (isCurrentPageSaved) {
+        const pageIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
+        if (pageIndex !== -1) {
+          savedWebpages[pageIndex].selected = true;
+          saveWebpagesToStorage();
+          renderSavedWebpages();
+        }
+      }
+      
+      // Fetch content if needed
+      if (!currentWebpageInfo.content) {
+        fetchWebpageContent();
+      }
+    } else {
+      // If unchecking and it's saved, update selection status
+      if (isCurrentPageSaved) {
+        const pageIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
+        if (pageIndex !== -1) {
+          savedWebpages[pageIndex].selected = false;
+          saveWebpagesToStorage();
+          renderSavedWebpages();
+        }
+      }
+    }
+  }
+  
+  // Listen for tab change messages from background script
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'TAB_CHANGED' || message.type === 'TAB_UPDATED') {
+      if (message.tab) {
+        console.log('Tab changed:', message.tab.title);
+        updateCurrentTabInfo();
+      }
     }
   });
+  
+  // Initialize the extension
+  loadSavedWebpages();
+  updateCurrentTabInfo();
+  
+  // Update tab info when sidebar is focused
+  window.addEventListener('focus', () => {
+    updateCurrentTabInfo();
+    console.log('Sidebar focused, updating tab info');
+  });
+  
+  // Listen for checkbox changes
+  webpageCheckbox.addEventListener('change', handleWebpageCheckboxChange);
   
   // Add initial bot message
   addBotMessage('Hello! How can I assist you today?');
@@ -91,15 +281,44 @@ document.addEventListener('DOMContentLoaded', () => {
     addUserMessage(message);
     userInput.value = '';
     
+    // Save current webpage if it's checked and not saved yet
+    if (webpageCheckbox.checked && currentWebpageInfo.content) {
+      const isCurrentPageSaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
+      if (!isCurrentPageSaved) {
+        saveCurrentWebpage();
+      }
+    }
+    
     // Add user message to conversation history
     conversationHistory.push({ role: 'user', content: message });
     
-    // If checkbox is checked, add webpage context to the conversation
+    // Add context for selected webpages
+    const selectedWebpages = savedWebpages.filter(page => page.selected);
+    
+    // Add current webpage if checked and not saved yet
     if (webpageCheckbox.checked && currentWebpageInfo.content) {
+      const isCurrentPageSaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
+      if (!isCurrentPageSaved) {
+        selectedWebpages.push({
+          title: currentWebpageInfo.title,
+          url: currentWebpageInfo.url,
+          content: currentWebpageInfo.content
+        });
+      }
+    }
+    
+    // If any webpages are selected, add them to context
+    if (selectedWebpages.length > 0) {
+      let contextContent = `The user is browsing the following webpages:\n\n`;
+      
+      selectedWebpages.forEach((page, index) => {
+        contextContent += `Page ${index + 1}: "${page.title}" (${page.url})\n`;
+        contextContent += `Content: ${page.content.substring(0, 150000)}\n\n`;
+      });
+      
       const webpageContext = {
         role: 'system',
-        content: `The user is currently on the webpage titled "${currentWebpageInfo.title}" with URL ${currentWebpageInfo.url}. 
-The content of the webpage is: ${currentWebpageInfo.content.substring(0, 150000)}` // Limiting content length
+        content: contextContent
       };
       
       // Insert webpage context right before the user's latest message
@@ -117,10 +336,10 @@ The content of the webpage is: ${currentWebpageInfo.content.substring(0, 150000)
     fetchChatGPTResponseStreaming(botMessageDiv, conversationHistory);
     
     // Remove the webpage context from history after sending
-    if (webpageCheckbox.checked && currentWebpageInfo.content) {
+    if (selectedWebpages.length > 0) {
       // Find and remove the webpage context message we added
       const contextIndex = conversationHistory.findIndex(msg => 
-        msg.role === 'system' && msg.content.includes(`The user is currently on the webpage titled "${currentWebpageInfo.title}"`)
+        msg.role === 'system' && msg.content.includes('The user is browsing the following webpages:')
       );
       
       if (contextIndex !== -1) {

@@ -14,10 +14,15 @@
       <!-- Chat messages will appear here -->
     </div>
     <div class="webpage-context">
-      <label id="webpage-checkbox-label">
-        <input type="checkbox" id="include-webpage"> 
-        <span id="webpage-title">Include current page</span>
-      </label>
+      <div class="current-page">
+        <label id="webpage-checkbox-label">
+          <input type="checkbox" id="include-webpage"> 
+          <span id="webpage-title">Include current page</span>
+        </label>
+      </div>
+      <div class="saved-pages" id="saved-pages-container">
+        <!-- Saved webpages will appear here -->
+      </div>
     </div>
     <div class="input-container">
       <textarea id="user-input" placeholder="Type your message here..."></textarea>

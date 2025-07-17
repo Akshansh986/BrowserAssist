@@ -71,6 +71,43 @@ body {
   background-color: #f9f9f9;
   border-top: 1px solid #eee;
   font-size: 14px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.current-page {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #ddd;
+}
+
+.saved-page-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.saved-page-item input {
+  margin-right: 8px;
+}
+
+.saved-page-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+}
+
+.remove-page {
+  margin-left: 8px;
+  color: #999;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.remove-page:hover {
+  color: #ff4444;
 }
 
 #webpage-checkbox-label {
@@ -150,4 +187,12 @@ body {
   0% { opacity: 0.4; }
   50% { opacity: 1; }
   100% { opacity: 0.4; }
+}
+
+.empty-pages-message {
+  color: #999;
+  font-style: italic;
+  font-size: 13px;
+  text-align: center;
+  padding: 5px 0;
 } 
