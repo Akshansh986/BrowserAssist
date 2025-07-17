@@ -23,4 +23,12 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       tab: tab 
     });
   }
+});
+
+// Listen for tab removal and notify the sidebar
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+  chrome.runtime.sendMessage({
+    type: 'TAB_REMOVED',
+    tabId: tabId
+  });
 }); 

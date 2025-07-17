@@ -15,10 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentWebpageInfo = {
     title: '',
     url: '',
-    content: ''
+    tabId: null
   };
   
-  // Saved webpages array
+  // Saved webpages array - now only storing metadata, not content
   let savedWebpages = [];
   
   // Load saved webpages from storage
@@ -118,67 +118,46 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tabs && tabs.length > 0) {
         const activeTab = tabs[0];
         
-        // If we had a previous page and it was checked but not saved, save it
-        if (currentWebpageInfo.url && 
-            webpageCheckbox.checked && 
-            currentWebpageInfo.content &&
-            currentWebpageInfo.url !== activeTab.url &&
-            !savedWebpages.some(page => page.url === currentWebpageInfo.url)) {
-          
-          console.log('Saving previous page before switching:', currentWebpageInfo.title);
-          saveCurrentWebpage();
-        }
-        
         // Update to new page info
         currentWebpageInfo.title = activeTab.title || 'Current webpage';
         currentWebpageInfo.url = activeTab.url || '';
-        currentWebpageInfo.content = ''; // Clear content when tab changes
+        currentWebpageInfo.tabId = activeTab.id;
         
         // Update the checkbox label with the webpage title and check status
         checkCurrentPageStatus();
-        
-        // If checkbox is checked for this new page but we don't have content, fetch it
-        if (webpageCheckbox.checked && !currentWebpageInfo.content) {
-          fetchWebpageContent();
-        }
       }
     });
   }
   
-  // Fetch webpage content from the active tab
-  function fetchWebpageContent() {
-    if (!currentWebpageInfo.url) return;
-    
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs && tabs.length > 0) {
-        const activeTab = tabs[0];
-        
-        // Execute script to get the page content
+  // Fetch webpage content from a tab
+  async function fetchWebpageContent(tabId, url) {
+    return new Promise((resolve, reject) => {
+      try {
         chrome.scripting.executeScript({
-          target: { tabId: activeTab.id },
+          target: { tabId: tabId },
           function: () => {
             return document.body.innerText;
           }
         }, (results) => {
-          if (results && results[0] && results[0].result) {
-            currentWebpageInfo.content = results[0].result;
-            console.log('Content fetched for:', currentWebpageInfo.title);
-            
-            // If this page is already in saved pages, update its content
-            const existingPage = savedWebpages.find(page => page.url === currentWebpageInfo.url);
-            if (existingPage) {
-              existingPage.content = currentWebpageInfo.content;
-              saveWebpagesToStorage();
-            }
+          if (chrome.runtime.lastError) {
+            console.error('Error fetching content:', chrome.runtime.lastError);
+            resolve(''); // Tab might be closed or inaccessible
+          } else if (results && results[0] && results[0].result) {
+            resolve(results[0].result);
+          } else {
+            resolve('');
           }
         });
+      } catch (error) {
+        console.error('Error executing script:', error);
+        resolve('');
       }
     });
   }
   
-  // Save current webpage
+  // Save current webpage (metadata only)
   function saveCurrentWebpage() {
-    if (!currentWebpageInfo.url || !currentWebpageInfo.content) return;
+    if (!currentWebpageInfo.url) return;
     
     // Check if webpage is already saved
     const existingIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
@@ -186,14 +165,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (existingIndex !== -1) {
       // Update existing page
       savedWebpages[existingIndex].title = currentWebpageInfo.title;
-      savedWebpages[existingIndex].content = currentWebpageInfo.content;
       savedWebpages[existingIndex].selected = true;
+      savedWebpages[existingIndex].tabId = currentWebpageInfo.tabId;
     } else {
-      // Add new webpage
+      // Add new webpage (metadata only)
       savedWebpages.push({
         title: currentWebpageInfo.title,
         url: currentWebpageInfo.url,
-        content: currentWebpageInfo.content,
+        tabId: currentWebpageInfo.tabId,
         selected: true,
         addedAt: new Date().toISOString()
       });
@@ -208,20 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const isCurrentPageSaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
     
     if (webpageCheckbox.checked) {
-      // If it's already saved, just update the selection status
-      if (isCurrentPageSaved) {
-        const pageIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
-        if (pageIndex !== -1) {
-          savedWebpages[pageIndex].selected = true;
-          saveWebpagesToStorage();
-          renderSavedWebpages();
-        }
-      }
-      
-      // Fetch content if needed
-      if (!currentWebpageInfo.content) {
-        fetchWebpageContent();
-      }
+      // Save the webpage metadata immediately
+      saveCurrentWebpage();
     } else {
       // If unchecking and it's saved, update selection status
       if (isCurrentPageSaved) {
@@ -235,6 +202,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
+  // Handle tab removal
+  function handleTabRemoval(tabId) {
+    // Find and remove any saved pages associated with this tab
+    const pagesToRemove = [];
+    
+    savedWebpages.forEach((page, index) => {
+      if (page.tabId === tabId) {
+        pagesToRemove.push(index);
+      }
+    });
+    
+    // Remove pages in reverse order to avoid index shifting issues
+    for (let i = pagesToRemove.length - 1; i >= 0; i--) {
+      savedWebpages.splice(pagesToRemove[i], 1);
+    }
+    
+    if (pagesToRemove.length > 0) {
+      saveWebpagesToStorage();
+      renderSavedWebpages();
+    }
+  }
+  
   // Listen for tab change messages from background script
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'TAB_CHANGED' || message.type === 'TAB_UPDATED') {
@@ -242,6 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Tab changed:', message.tab.title);
         updateCurrentTabInfo();
       }
+    } else if (message.type === 'TAB_REMOVED') {
+      console.log('Tab removed:', message.tabId);
+      handleTabRemoval(message.tabId);
     }
   });
   
@@ -273,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Function to send message
-  function sendMessage() {
+  async function sendMessage() {
     const message = userInput.value.trim();
     if (!message) return;
 
@@ -282,47 +274,48 @@ document.addEventListener('DOMContentLoaded', () => {
     userInput.value = '';
     
     // Save current webpage if it's checked and not saved yet
-    if (webpageCheckbox.checked && currentWebpageInfo.content) {
-      const isCurrentPageSaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
-      if (!isCurrentPageSaved) {
-        saveCurrentWebpage();
-      }
+    if (webpageCheckbox.checked && !savedWebpages.some(page => page.url === currentWebpageInfo.url)) {
+      saveCurrentWebpage();
     }
     
     // Add user message to conversation history
     conversationHistory.push({ role: 'user', content: message });
     
-    // Add context for selected webpages
+    // Get selected webpages and fetch their content
     const selectedWebpages = savedWebpages.filter(page => page.selected);
+    let contextContent = '';
     
-    // Add current webpage if checked and not saved yet
-    if (webpageCheckbox.checked && currentWebpageInfo.content) {
-      const isCurrentPageSaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
-      if (!isCurrentPageSaved) {
-        selectedWebpages.push({
-          title: currentWebpageInfo.title,
-          url: currentWebpageInfo.url,
-          content: currentWebpageInfo.content
-        });
-      }
-    }
-    
-    // If any webpages are selected, add them to context
     if (selectedWebpages.length > 0) {
-      let contextContent = `The user is browsing the following webpages:\n\n`;
+      contextContent = `The user is browsing the following webpages:\n\n`;
       
-      selectedWebpages.forEach((page, index) => {
-        contextContent += `Page ${index + 1}: "${page.title}" (${page.url})\n`;
-        contextContent += `Content: ${page.content.substring(0, 150000)}\n\n`;
-      });
-      
-      const webpageContext = {
-        role: 'system',
-        content: contextContent
-      };
+      // Fetch content for all selected pages
+      for (let i = 0; i < selectedWebpages.length; i++) {
+        const page = selectedWebpages[i];
+        let content = '';
+        
+        // Try to fetch content from the tab if it's still open
+        if (page.tabId) {
+          content = await fetchWebpageContent(page.tabId, page.url);
+        }
+        
+        // If we couldn't get content (tab closed or error), provide a message
+        if (!content) {
+          content = `[Content unavailable - tab may be closed]`;
+        }
+        
+        contextContent += `Page ${i + 1}: "${page.title}" (${page.url})\n`;
+        contextContent += `Content: ${content.substring(0, 150000)}\n\n`;
+      }
       
       // Insert webpage context right before the user's latest message
-      conversationHistory.splice(conversationHistory.length - 1, 0, webpageContext);
+      if (contextContent) {
+        const webpageContext = {
+          role: 'system',
+          content: contextContent
+        };
+        
+        conversationHistory.splice(conversationHistory.length - 1, 0, webpageContext);
+      }
     }
 
     // Create a bot message element for the streaming response
@@ -336,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchChatGPTResponseStreaming(botMessageDiv, conversationHistory);
     
     // Remove the webpage context from history after sending
-    if (selectedWebpages.length > 0) {
+    if (contextContent) {
       // Find and remove the webpage context message we added
       const contextIndex = conversationHistory.findIndex(msg => 
         msg.role === 'system' && msg.content.includes('The user is browsing the following webpages:')
