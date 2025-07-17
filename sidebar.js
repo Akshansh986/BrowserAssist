@@ -21,28 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Saved webpages array - now only storing metadata, not content
   let savedWebpages = [];
   
-  // Load saved webpages from storage
-  function loadSavedWebpages() {
-    chrome.storage.local.get('savedWebpages', (result) => {
-      if (result.savedWebpages) {
-        savedWebpages = result.savedWebpages;
-        renderSavedWebpages();
-        checkCurrentPageStatus();
-      } else {
-        // Initialize empty array if nothing is saved
-        savedWebpages = [];
-        saveWebpagesToStorage();
-      }
-    });
-  }
-  
-  // Save webpages to storage
-  function saveWebpagesToStorage() {
-    chrome.storage.local.set({ savedWebpages }, () => {
-      console.log('Saved webpages updated:', savedWebpages.length);
-    });
-  }
-  
   // Render saved webpages in the UI
   function renderSavedWebpages() {
     savedPagesContainer.innerHTML = '';
@@ -64,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
       checkbox.checked = page.selected;
       checkbox.addEventListener('change', () => {
         savedWebpages[index].selected = checkbox.checked;
-        saveWebpagesToStorage();
       });
       
       const titleSpan = document.createElement('span');
@@ -79,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
       removeButton.addEventListener('click', (e) => {
         e.stopPropagation();
         savedWebpages.splice(index, 1);
-        saveWebpagesToStorage();
         renderSavedWebpages();
         checkCurrentPageStatus();
       });
@@ -225,7 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
     
-    saveWebpagesToStorage();
     renderSavedWebpages();
   }
   
@@ -242,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const pageIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
         if (pageIndex !== -1) {
           savedWebpages[pageIndex].selected = false;
-          saveWebpagesToStorage();
           renderSavedWebpages();
         }
       }
@@ -266,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     if (pagesToRemove.length > 0) {
-      saveWebpagesToStorage();
       renderSavedWebpages();
     }
   }
@@ -285,8 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   // Initialize the extension
-  loadSavedWebpages();
   updateCurrentTabInfo();
+  renderSavedWebpages();
   
   // Update tab info when sidebar is focused
   window.addEventListener('focus', () => {
