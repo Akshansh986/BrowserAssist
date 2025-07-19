@@ -55,6 +55,71 @@ body {
   align-self: flex-start;
 }
 
+/* Markdown styling */
+.bot-message p {
+  margin-bottom: 10px;
+}
+
+.bot-message p:last-child {
+  margin-bottom: 0;
+}
+
+.bot-message ul, .bot-message ol {
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+
+.bot-message li {
+  margin-bottom: 3px;
+}
+
+.bot-message h1, .bot-message h2, .bot-message h3, 
+.bot-message h4, .bot-message h5, .bot-message h6 {
+  margin-top: 10px;
+  margin-bottom: 6px;
+}
+
+.bot-message code {
+  background-color: #e8e8e8;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.bot-message pre {
+  background-color: #f8f8f8;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
+  margin: 10px 0;
+}
+
+.bot-message pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.bot-message blockquote {
+  border-left: 3px solid #10a37f;
+  padding-left: 10px;
+  margin-left: 10px;
+  color: #555;
+}
+
+.bot-message table {
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+
+.bot-message th, .bot-message td {
+  border: 1px solid #ddd;
+  padding: 6px 10px;
+}
+
+.bot-message th {
+  background-color: #f2f2f2;
+}
+
 .bot-message.streaming::after {
   content: '|';
   display: inline-block;

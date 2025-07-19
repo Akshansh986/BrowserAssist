@@ -8,6 +8,9 @@
     "http://localhost:8000/",
     "<all_urls>"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "action": {
     "default_title": "Open ChatGPT Sidebar",
     "default_icon": {

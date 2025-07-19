@@ -1,10 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Check if marked library is loaded
+  if (typeof marked === 'undefined') {
+    console.error('Marked library is not loaded. Some features may not work correctly.');
+  } else {
+    console.log('Marked library loaded successfully.');
+  }
+
   const chatContainer = document.getElementById('chat-container');
   const userInput = document.getElementById('user-input');
   const sendButton = document.getElementById('send-button');
   const webpageCheckbox = document.getElementById('include-webpage');
   const webpageTitle = document.getElementById('webpage-title');
   const savedPagesContainer = document.getElementById('saved-pages-container');
+  
+  // Helper function to render markdown text
+  function renderMarkdown(element, text) {
+    // Make sure marked is available before using it
+    if (typeof marked !== 'undefined') {
+      element.innerHTML = marked.parse(text);
+    } else {
+      // Fallback if marked isn't available
+      console.warn('Marked library not available, using textContent as fallback');
+      element.textContent = text;
+    }
+  }
   
   // Store conversation history
   const conversationHistory = [
@@ -276,112 +295,125 @@ document.addEventListener('DOMContentLoaded', () => {
   conversationHistory.push({ role: 'assistant', content: 'Hello! How can I assist you today?' });
 
   // Event listeners
-  sendButton.addEventListener('click', sendMessage);
+  sendButton.addEventListener('click', () => {
+    console.log('Send button clicked');
+    sendMessage();
+  });
   userInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      console.log('Enter key pressed');
       sendMessage();
     }
   });
 
   // Function to send message
   async function sendMessage() {
-    const message = userInput.value.trim();
-    if (!message) return;
-
-    // Add user message to chat
-    addUserMessage(message);
-    userInput.value = '';
-    
-    // Save current webpage if it's checked and not saved yet
-    if (webpageCheckbox.checked && !savedWebpages.some(page => page.url === currentWebpageInfo.url)) {
-      saveCurrentWebpage();
-    }
-    
-    // Add user message to conversation history
-    conversationHistory.push({ role: 'user', content: message });
-    
-    // Create a bot message element for the streaming response
-    const botMessageDiv = document.createElement('div');
-    botMessageDiv.className = 'message bot-message';
-    botMessageDiv.textContent = '';
-    chatContainer.appendChild(botMessageDiv);
-    scrollToBottom();
-    
-    // Check for permissions first
     try {
-      // This will prompt for permissions if needed
-      await chrome.permissions.request({
-        permissions: ['scripting'],
-        origins: ['<all_urls>']
-      });
-    } catch (error) {
-      console.error('Permission request failed:', error);
-    }
-    
-    // Get selected webpages and fetch their content
-    const selectedWebpages = savedWebpages.filter(page => page.selected);
-    let contextContent = '';
-    
-    // Add current tab to the selected webpages if it's checked but not in savedWebpages
-    const isCurrentPageSaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
-    if (webpageCheckbox.checked && !isCurrentPageSaved && currentWebpageInfo.tabId) {
-      selectedWebpages.push({
-        title: currentWebpageInfo.title,
-        url: currentWebpageInfo.url,
-        tabId: currentWebpageInfo.tabId,
-        selected: true
-      });
-    }
-    
-    if (selectedWebpages.length > 0) {
-      contextContent = `The user is browsing the following webpages:\n\n`;
-      
-      // Fetch content for all selected pages
-      for (let i = 0; i < selectedWebpages.length; i++) {
-        const page = selectedWebpages[i];
-        let content = '';
-        
-        console.log(`Attempting to fetch content for tab ${page.tabId} (${page.title})`);
-        
-        // Try to fetch content from the tab if it's still open
-        if (page.tabId) {
-          content = await fetchWebpageContent(page.tabId, page.url);
-        }
-        
-        // If we couldn't get content (tab closed or error), provide a message
-        if (!content) {
-          content = `[Content unavailable - tab may be closed or is on a restricted page]`;
-        }
-        
-        contextContent += `Page ${i + 1}: "${page.title}" (${page.url})\n`;
-        contextContent += `Content: ${content.substring(0, 150000)}\n\n`;
-      }
-      
-      // Insert webpage context right before the user's latest message
-      if (contextContent) {
-        const webpageContext = {
-          role: 'system',
-          content: contextContent
-        };
-        
-        conversationHistory.splice(conversationHistory.length - 1, 0, webpageContext);
-      }
-    }
+      const message = userInput.value.trim();
+      if (!message) return;
 
-    // Call ChatGPT API via local server with streaming
-    fetchChatGPTResponseStreaming(botMessageDiv, conversationHistory);
-    
-    // Remove the webpage context from history after sending
-    if (contextContent) {
-      // Find and remove the webpage context message we added
-      const contextIndex = conversationHistory.findIndex(msg => 
-        msg.role === 'system' && msg.content.includes('The user is browsing the following webpages:')
-      );
+      // Add user message to chat
+      addUserMessage(message);
+      userInput.value = '';
       
-      if (contextIndex !== -1) {
-        conversationHistory.splice(contextIndex, 1);
+      // Save current webpage if it's checked and not saved yet
+      if (webpageCheckbox.checked && !savedWebpages.some(page => page.url === currentWebpageInfo.url)) {
+        saveCurrentWebpage();
       }
+      
+      // Add user message to conversation history
+      conversationHistory.push({ role: 'user', content: message });
+      
+      // Create a bot message element for the streaming response
+      const botMessageDiv = document.createElement('div');
+      botMessageDiv.className = 'message bot-message';
+      botMessageDiv.innerHTML = ''; // Use innerHTML instead of textContent
+      chatContainer.appendChild(botMessageDiv);
+      scrollToBottom();
+      
+      // Check for permissions first
+      try {
+        // This will prompt for permissions if needed
+        await chrome.permissions.request({
+          permissions: ['scripting'],
+          origins: ['<all_urls>']
+        });
+      } catch (error) {
+        console.error('Permission request failed:', error);
+      }
+      
+      // Get selected webpages and fetch their content
+      const selectedWebpages = savedWebpages.filter(page => page.selected);
+      let contextContent = '';
+      
+      // Add current tab to the selected webpages if it's checked but not in savedWebpages
+      const isCurrentPageSaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
+      if (webpageCheckbox.checked && !isCurrentPageSaved && currentWebpageInfo.tabId) {
+        selectedWebpages.push({
+          title: currentWebpageInfo.title,
+          url: currentWebpageInfo.url,
+          tabId: currentWebpageInfo.tabId,
+          selected: true
+        });
+      }
+      
+      if (selectedWebpages.length > 0) {
+        contextContent = `The user is browsing the following webpages:\n\n`;
+        
+        // Fetch content for all selected pages
+        for (let i = 0; i < selectedWebpages.length; i++) {
+          const page = selectedWebpages[i];
+          let content = '';
+          
+          console.log(`Attempting to fetch content for tab ${page.tabId} (${page.title})`);
+          
+          // Try to fetch content from the tab if it's still open
+          if (page.tabId) {
+            content = await fetchWebpageContent(page.tabId, page.url);
+          }
+          
+          // If we couldn't get content (tab closed or error), provide a message
+          if (!content) {
+            content = `[Content unavailable - tab may be closed or is on a restricted page]`;
+          }
+          
+          contextContent += `Page ${i + 1}: "${page.title}" (${page.url})\n`;
+          contextContent += `Content: ${content.substring(0, 150000)}\n\n`;
+        }
+        
+        // Insert webpage context right before the user's latest message
+        if (contextContent) {
+          const webpageContext = {
+            role: 'system',
+            content: contextContent
+          };
+          
+          conversationHistory.splice(conversationHistory.length - 1, 0, webpageContext);
+        }
+      }
+
+      // Call ChatGPT API via local server with streaming
+      fetchChatGPTResponseStreaming(botMessageDiv, conversationHistory);
+      
+      // Remove the webpage context from history after sending
+      if (contextContent) {
+        // Find and remove the webpage context message we added
+        const contextIndex = conversationHistory.findIndex(msg => 
+          msg.role === 'system' && msg.content.includes('The user is browsing the following webpages:')
+        );
+        
+        if (contextIndex !== -1) {
+          conversationHistory.splice(contextIndex, 1);
+        }
+      }
+    } catch (error) {
+      console.error('Error in sendMessage:', error);
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'message bot-message';
+      errorDiv.textContent = `Error: ${error.message}`;
+      chatContainer.appendChild(errorDiv);
+      scrollToBottom();
     }
   }
 
@@ -398,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function addBotMessage(text) {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message bot-message';
-    messageDiv.textContent = text;
+    renderMarkdown(messageDiv, text);
     chatContainer.appendChild(messageDiv);
     scrollToBottom();
   }
@@ -461,7 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const choice = parsedData.choices[0];
                 if (choice.delta && choice.delta.content) {
                   fullContent += choice.delta.content;
-                  messageElement.textContent = fullContent;
+                  renderMarkdown(messageElement, fullContent);
                   scrollToBottom();
                 }
               }
