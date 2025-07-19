@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Store conversation history
   const conversationHistory = [
-    { role: 'system', content: 'You are a helpful assistant.' }
+    { role: 'system', content: 'You are an intelligent assistant integrated directly into the browser. You can help users understand web content, summarize pages, answer questions about what they are browsing, and provide relevant information based on their current browsing context.' }
   ];
   
   // Current webpage info
