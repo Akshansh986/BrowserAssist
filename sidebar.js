@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Add streaming class for the blinking cursor effect
       messageElement.classList.add('streaming');
       
-      const response = await fetch('http://localhost:8000/api/v1/chat/completions', {
+      const response = await fetch('http://newsreader-env.eba-ppnycaas.eu-west-1.elasticbeanstalk.com/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
