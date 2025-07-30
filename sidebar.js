@@ -168,48 +168,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`Content successfully fetched for tab ${tabId} using ${result.source}`);
                 
                 // Use TurndownService to convert HTML to Markdown
-                const turndownService = new TurndownService({
-                  headingStyle: 'atx',     // Use # style headings
-                  hr: '---',               // Use --- for horizontal rules
-                  bulletListMarker: '-',   // Use - for bullet lists
-                  codeBlockStyle: 'fenced', // Use ``` for code blocks
-                  emDelimiter: '*',        // Use * for emphasis
-                  strongDelimiter: '**',   // Use ** for strong emphasis
-                  linkStyle: 'inlined'     // Use inline links
-                });
+                const turndownService = new TurndownService();
                 
-                // Custom rules for full page conversion
-                
-                // Remove head, scripts, styles and other non-content elements
-                turndownService.remove(['script', 'noscript', 'style', 'head', 'meta', 'link', 'iframe']);
                 
                 // Keep only certain elements if the content is too large
-                const htmlContent = result.content;
-                let content = htmlContent;
-                
-                // If content is excessively large, try to extract main content
-                if (htmlContent.length > 500000) {
-                  const parser = new DOMParser();
-                  const doc = parser.parseFromString(htmlContent, 'text/html');
-                  
-                  // Try to find main content
-                  const mainContent = doc.querySelector('main') || 
-                                     doc.querySelector('article') || 
-                                     doc.querySelector('#content') || 
-                                     doc.querySelector('.content');
-                  
-                  if (mainContent) {
-                    content = mainContent.outerHTML;
-                  } else {
-                    // If no main content found, use body
-                    content = doc.body.outerHTML;
-                  }
-                }
-                
-                let markdown = turndownService.turndown(content);
-                
-                // Clean up the markdown
-                markdown = cleanMarkdown(markdown);
+                const htmlContent = result.content;                
+                let markdown = turndownService.turndown(htmlContent);
                 
                 resolve(markdown);
               } else {
@@ -579,38 +543,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 }); 
-
-// Function to clean up markdown output
-function cleanMarkdown(markdown) {
-  if (!markdown) return '';
-  
-  // Replace multiple newlines with a maximum of 2
-  markdown = markdown.replace(/\n{3,}/g, '\n\n');
-  
-  // Trim whitespace
-  markdown = markdown.trim();
-  
-  // Remove any HTML comments
-  markdown = markdown.replace(/<!--[\s\S]*?-->/g, '');
-  
-  // Remove excess whitespace in code blocks
-  markdown = markdown.replace(/```[\s\n]+([\s\S]*?)[\s\n]+```/g, '```\n$1\n```');
-  
-  // Remove HTML DOCTYPE and meta content that might have slipped through
-  markdown = markdown.replace(/<!DOCTYPE.*?>/gi, '');
-  markdown = markdown.replace(/<meta.*?>/gi, '');
-  markdown = markdown.replace(/<link.*?>/gi, '');
-  
-  // Remove any remaining HTML tags that Turndown didn't convert
-  markdown = markdown.replace(/<[^>]*>/g, '');
-  
-  // Remove consecutive blank lines
-  markdown = markdown.replace(/\n\s*\n\s*\n/g, '\n\n');
-  
-  // Remove excessively long lines (likely navigation menus that got inline)
-  const lines = markdown.split('\n');
-  const filteredLines = lines.filter(line => line.length < 500);
-  markdown = filteredLines.join('\n');
-  
-  return markdown;
-} 
