@@ -143,13 +143,27 @@ document.addEventListener('DOMContentLoaded', () => {
           chrome.scripting.executeScript({
             target: { tabId: tabId },
             function: () => {
-              // Try to get the whole document content
+              // Try to get the whole document content including iframes
               try {
-                // Get the entire document HTML
+                // Get the outer HTML of the main document
+                let htmlContent = "<!-- Main Document -->\n" + document.documentElement.outerHTML;
+                
+                // Try to get the content of all same-origin iframes
+                const iframes = document.querySelectorAll('iframe');
+                iframes.forEach((iframe, idx) => {
+                  try {
+                    let iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    htmlContent += `\n\n<!-- iframe[${idx}] src="${iframe.src}" -->\n` +
+                                   iframeDoc.documentElement.outerHTML;
+                  } catch (e) {
+                    htmlContent += `\n\n<!-- iframe[${idx}] src="${iframe.src}" UNAVAILABLE: Cross-origin restriction -->\n`;
+                  }
+                });
+                
                 return {
                   success: true,
-                  content: document.documentElement.outerHTML,
-                  source: 'full-page'
+                  content: htmlContent,
+                  source: 'full-page-with-iframes'
                 };
               } catch (error) {
                 return {
@@ -170,11 +184,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Use TurndownService to convert HTML to Markdown
                 const turndownService = new TurndownService();
                 
+                // Remove head, scripts, styles and other non-content elements
+                turndownService.remove(['script', 'noscript', 'style', 'head', 'meta', 'link']);
                 
-                // Keep only certain elements if the content is too large
+                
+                // // Keep only certain elements if the content is too large
                 const htmlContent = result.content;                
                 let markdown = turndownService.turndown(htmlContent);
-                
+                console.log(markdown)
                 resolve(markdown);
               } else {
                 console.error('Script execution failed:', result.error);
