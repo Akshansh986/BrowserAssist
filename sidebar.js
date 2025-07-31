@@ -554,7 +554,18 @@ document.addEventListener('DOMContentLoaded', () => {
       // Add the initial message to history
       conversationHistory.push({ role: 'assistant', content: 'Hello! How can I assist you today?' });
       
-      console.log('Conversation cleared successfully');
+      // Uncheck the current webpage checkbox
+      webpageCheckbox.checked = false;
+      
+      // Deselect all saved webpages
+      savedWebpages.forEach(page => {
+        page.selected = false;
+      });
+      
+      // Re-render saved webpages to update UI
+      renderSavedWebpages();
+      
+      console.log('Conversation cleared successfully and pages deselected');
     } catch (error) {
       console.error('Error clearing conversation:', error);
     }
