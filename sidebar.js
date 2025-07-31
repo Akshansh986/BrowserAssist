@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (mainUi) mainUi.style.display = 'flex';
       if (apiKeySection) apiKeySection.style.display = 'none';
       if (changeApiKeyButton) changeApiKeyButton.style.display = 'inline-block';
-      if (changeApiKeyButton) changeApiKeyButton.textContent = 'Change Key';
+      if (changeApiKeyButton) changeApiKeyButton.textContent = 'Change API Key';
     } else {
       if (mainUi) mainUi.style.display = 'none';
       if (apiKeySection) apiKeySection.style.display = 'block';
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const isVisible = apiKeySection.style.display !== 'none';
       if (isVisible) {
         apiKeySection.style.display = 'none';
-        changeApiKeyButton.textContent = 'Change Key';
+        changeApiKeyButton.textContent = 'Change API Key';
       } else {
         apiKeySection.style.display = 'block';
         changeApiKeyButton.textContent = 'Cancel';

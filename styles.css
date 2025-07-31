@@ -357,3 +357,13 @@ body {
   height: 100%;
   flex: 1;
 } 
+
+/* Change API Key button styling similar to Clear button */
+#change-api-key-button {
+  background-color: #0d8a6c;
+  color: white;
+}
+
+#change-api-key-button:hover {
+  background-color: #0a7255;
+} 
