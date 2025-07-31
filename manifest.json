@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT Sidebar",
+  "name": "Browser Assist",
   "version": "1.0",
-  "description": "Access ChatGPT from a sidebar in your browser",
+  "description": "Access Browser Assist from a sidebar in your browser",
   "permissions": ["sidePanel", "storage", "tabs", "scripting", "activeTab"],
   "host_permissions": [
     "https://api.openai.com/",
@@ -12,7 +12,7 @@
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
   "action": {
-    "default_title": "Open ChatGPT Sidebar",
+    "default_title": "Open Browser Assist",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
