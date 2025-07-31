@@ -17,8 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const apiKeyInput = document.getElementById('api-key-input');
   const saveApiKeyButton = document.getElementById('save-api-key-button');
   const apiKeyStatus = document.getElementById('api-key-status');
-  const toggleApiKeyButton = document.getElementById('toggle-api-key');
-  const apiKeyInputContainer = document.querySelector('.api-key-input-container');
+  const changeApiKeyButton = document.getElementById('change-api-key-button');
+  const apiKeySection = document.querySelector('.api-key-section');
+  const mainUi = document.getElementById('main-ui');
   
   // Store API key
   let openaiApiKey = '';
@@ -51,6 +52,22 @@ document.addEventListener('DOMContentLoaded', () => {
         apiKeyStatus.classList.remove('key-saved');
       }
     }
+    // Update overall UI visibility based on key state
+    updateOverallUI(keyExists);
+  }
+  
+  // Function to show or hide main UI and API key section
+  function updateOverallUI(keyExists) {
+    if (keyExists) {
+      if (mainUi) mainUi.style.display = 'flex';
+      if (apiKeySection) apiKeySection.style.display = 'none';
+      if (changeApiKeyButton) changeApiKeyButton.style.display = 'inline-block';
+      if (changeApiKeyButton) changeApiKeyButton.textContent = 'Change Key';
+    } else {
+      if (mainUi) mainUi.style.display = 'none';
+      if (apiKeySection) apiKeySection.style.display = 'block';
+      if (changeApiKeyButton) changeApiKeyButton.style.display = 'none';
+    }
   }
   
   // Event listener for saving API key
@@ -64,7 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
           openaiApiKey = newKey;
           updateApiKeyStatus(true);
           apiKeyInput.value = '';
-          alert('API key saved successfully.');
+          // Hide the API key section after saving
+          if (apiKeySection) apiKeySection.style.display = 'none';
         });
       } else {
         alert('Please enter a valid API key.');
@@ -72,19 +90,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Toggle API key input visibility
-  if (toggleApiKeyButton && apiKeyInputContainer) {
-    toggleApiKeyButton.addEventListener('click', () => {
-      const isVisible = apiKeyInputContainer.style.display !== 'none';
-      
+  // Change API key button toggles visibility of key section
+  if (changeApiKeyButton) {
+    changeApiKeyButton.addEventListener('click', () => {
+      if (!apiKeySection) return;
+      const isVisible = apiKeySection.style.display !== 'none';
       if (isVisible) {
-        apiKeyInputContainer.style.display = 'none';
-        toggleApiKeyButton.textContent = 'Show';
-        // Clear input for security
-        apiKeyInput.value = '';
+        apiKeySection.style.display = 'none';
+        changeApiKeyButton.textContent = 'Change Key';
       } else {
-        apiKeyInputContainer.style.display = 'flex';
-        toggleApiKeyButton.textContent = 'Hide';
+        apiKeySection.style.display = 'block';
+        changeApiKeyButton.textContent = 'Cancel';
       }
     });
   }

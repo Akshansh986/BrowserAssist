@@ -349,3 +349,11 @@ body {
 #save-api-key-button:hover {
   background-color: #0d8a6c;
 } 
+
+/* Main UI wrapper for when API key is present */
+#main-ui {
+  display: flex; /* will be toggled via JS */
+  flex-direction: column;
+  height: 100%;
+  flex: 1;
+} 

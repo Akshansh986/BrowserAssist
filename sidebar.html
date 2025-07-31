@@ -10,27 +10,11 @@
     <div class="header">
       <h1>ChatGPT</h1>
       <button id="clear-button" title="Clear conversation">Clear</button>
-    </div>
-    <div class="chat-container" id="chat-container">
-      <!-- Chat messages will appear here -->
-    </div>
-    <div class="webpage-context">
-      <div class="current-page">
-        <label id="webpage-checkbox-label">
-          <input type="checkbox" id="include-webpage"> 
-          <span id="webpage-title">Include current page</span>
-        </label>
-      </div>
-      <div class="saved-pages" id="saved-pages-container">
-        <!-- Saved webpages will appear here -->
-      </div>
+      <button id="change-api-key-button" class="toggle-button" style="display:none;">Change API Key</button>
     </div>
     <div class="api-key-section">
       <div class="api-key-header">
         <span id="api-key-status" class="key-missing">API Key: Required</span>
-        <button id="toggle-api-key" class="toggle-button">Show</button>
-      </div>
-      <div class="api-key-input-container" style="display: none;">
         <input type="password" id="api-key-input" placeholder="Enter your OpenAI API key">
         <button id="save-api-key-button">Save</button>
       </div>
@@ -38,9 +22,25 @@
         An OpenAI API key is required to use this extension.
       </div>
     </div>
-    <div class="input-container">
-      <textarea id="user-input" placeholder="Type your message here..."></textarea>
-      <button id="send-button">Send</button>
+    <div id="main-ui" style="display:none;">
+      <div class="chat-container" id="chat-container">
+        <!-- Chat messages will appear here -->
+      </div>
+      <div class="webpage-context">
+        <div class="current-page">
+          <label id="webpage-checkbox-label">
+            <input type="checkbox" id="include-webpage"> 
+            <span id="webpage-title">Include current page</span>
+          </label>
+        </div>
+        <div class="saved-pages" id="saved-pages-container">
+          <!-- Saved webpages will appear here -->
+        </div>
+      </div>
+      <div class="input-container">
+        <textarea id="user-input" placeholder="Type your message here..."></textarea>
+        <button id="send-button">Send</button>
+      </div>
     </div>
   </div>
   <script src="marked.js"></script>
