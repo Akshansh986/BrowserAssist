@@ -5,7 +5,7 @@
   "description": "Access ChatGPT from a sidebar in your browser",
   "permissions": ["sidePanel", "storage", "tabs", "scripting", "activeTab"],
   "host_permissions": [
-    "http://newsreader-env.eba-ppnycaas.eu-west-1.elasticbeanstalk.com/",
+    "https://api.openai.com/",
     "<all_urls>"
   ],
   "content_security_policy": {

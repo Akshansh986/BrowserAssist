@@ -25,6 +25,19 @@
         <!-- Saved webpages will appear here -->
       </div>
     </div>
+    <div class="api-key-section">
+      <div class="api-key-header">
+        <span id="api-key-status" class="key-missing">API Key: Required</span>
+        <button id="toggle-api-key" class="toggle-button">Show</button>
+      </div>
+      <div class="api-key-input-container" style="display: none;">
+        <input type="password" id="api-key-input" placeholder="Enter your OpenAI API key">
+        <button id="save-api-key-button">Save</button>
+      </div>
+      <div class="api-key-info">
+        An OpenAI API key is required to use this extension.
+      </div>
+    </div>
     <div class="input-container">
       <textarea id="user-input" placeholder="Type your message here..."></textarea>
       <button id="send-button">Send</button>

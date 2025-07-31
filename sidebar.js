@@ -13,6 +13,81 @@ document.addEventListener('DOMContentLoaded', () => {
   const webpageTitle = document.getElementById('webpage-title');
   const savedPagesContainer = document.getElementById('saved-pages-container');
   const clearButton = document.getElementById('clear-button');
+  // Add references to API key elements
+  const apiKeyInput = document.getElementById('api-key-input');
+  const saveApiKeyButton = document.getElementById('save-api-key-button');
+  const apiKeyStatus = document.getElementById('api-key-status');
+  const toggleApiKeyButton = document.getElementById('toggle-api-key');
+  const apiKeyInputContainer = document.querySelector('.api-key-input-container');
+  
+  // Store API key
+  let openaiApiKey = '';
+  
+  // Load API key on startup
+  loadApiKey();
+  
+  // Function to load API key from storage
+  function loadApiKey() {
+    chrome.storage.local.get(['openaiApiKey'], (result) => {
+      if (result.openaiApiKey) {
+        openaiApiKey = result.openaiApiKey;
+        updateApiKeyStatus(true);
+      } else {
+        updateApiKeyStatus(false);
+      }
+    });
+  }
+  
+  // Function to update API key status display
+  function updateApiKeyStatus(keyExists) {
+    if (apiKeyStatus) {
+      if (keyExists) {
+        apiKeyStatus.textContent = 'API Key: Saved';
+        apiKeyStatus.classList.add('key-saved');
+        apiKeyStatus.classList.remove('key-missing');
+      } else {
+        apiKeyStatus.textContent = 'API Key: Required';
+        apiKeyStatus.classList.add('key-missing');
+        apiKeyStatus.classList.remove('key-saved');
+      }
+    }
+  }
+  
+  // Event listener for saving API key
+  if (saveApiKeyButton) {
+    saveApiKeyButton.addEventListener('click', () => {
+      const newKey = apiKeyInput.value.trim();
+      
+      if (newKey) {
+        // Save key to storage
+        chrome.storage.local.set({ openaiApiKey: newKey }, () => {
+          openaiApiKey = newKey;
+          updateApiKeyStatus(true);
+          apiKeyInput.value = '';
+          alert('API key saved successfully.');
+        });
+      } else {
+        alert('Please enter a valid API key.');
+      }
+    });
+  }
+  
+  // Toggle API key input visibility
+  if (toggleApiKeyButton && apiKeyInputContainer) {
+    toggleApiKeyButton.addEventListener('click', () => {
+      const isVisible = apiKeyInputContainer.style.display !== 'none';
+      
+      if (isVisible) {
+        apiKeyInputContainer.style.display = 'none';
+        toggleApiKeyButton.textContent = 'Show';
+        // Clear input for security
+        apiKeyInput.value = '';
+      } else {
+        apiKeyInputContainer.style.display = 'flex';
+        toggleApiKeyButton.textContent = 'Hide';
+      }
+    });
+  }
   
   // Helper function to render markdown text
   function renderMarkdown(element, text) {
@@ -336,6 +411,16 @@ document.addEventListener('DOMContentLoaded', () => {
       addUserMessage(message);
       userInput.value = '';
       
+      // Check if API key is provided
+      if (!openaiApiKey) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'message bot-message';
+        errorDiv.textContent = 'Please set your OpenAI API key in the API key section before sending messages.';
+        chatContainer.appendChild(errorDiv);
+        scrollToBottom();
+        return;
+      }
+      
       // Save current webpage if it's checked and not saved yet
       if (webpageCheckbox.checked && !savedWebpages.some(page => page.url === currentWebpageInfo.url)) {
         saveCurrentWebpage();
@@ -459,30 +544,37 @@ document.addEventListener('DOMContentLoaded', () => {
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
   
-  // Function to call ChatGPT API via local server with streaming support
+  // Function to call ChatGPT API directly with streaming support
   async function fetchChatGPTResponseStreaming(messageElement, messageHistory) {
     try {
+      // Check if API key is provided
+      if (!openaiApiKey) {
+        messageElement.textContent = 'Error: OpenAI API key not provided. Please set your API key to use this feature.';
+        messageElement.classList.remove('streaming');
+        return;
+      }
+      
       // Add streaming class for the blinking cursor effect
       messageElement.classList.add('streaming');
       
-      const response = await fetch('http://newsreader-env.eba-ppnycaas.eu-west-1.elasticbeanstalk.com/api/v1/chat/completions', {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiApiKey}`
         },
         body: JSON.stringify({
-          model: 'gpt-4.1',
+          model: 'gpt-4.1', // Using latest available model
           messages: messageHistory,
           temperature: 0.7,
           max_tokens: 1000,
-          stream: true,
-          password: 'Webkiosk@1'
+          stream: true
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get response from ChatGPT');
+        throw new Error(errorData.error || 'Failed to get response from OpenAI API');
       }
 
       const reader = response.body.getReader();
