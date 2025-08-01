@@ -214,9 +214,42 @@ body {
 
 .input-container {
   display: flex;
+  flex-direction: column;
   padding: 10px;
   background-color: white;
   border-top: 1px solid #ddd;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+#send-button,
+#clear-button {
+  padding: 6px 14px;
+  background-color: #10a37f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+#send-button:hover,
+#clear-button:hover {
+  background-color: #0d8a6c;
+}
+
+#clear-button {
+  background-color: #e74c3c; /* red tint */
+}
+
+#clear-button:hover {
+  background-color: #c0392b;
 }
 
 #user-input {
@@ -226,20 +259,6 @@ body {
   border-radius: 4px;
   resize: none;
   height: 60px;
-}
-
-#send-button {
-  margin-left: 10px;
-  padding: 0 20px;
-  background-color: #10a37f;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-#send-button:hover {
-  background-color: #0d8a6c;
 }
 
 .typing-indicator {
@@ -401,8 +420,8 @@ body.dark-mode .header {
   background-color: #333;
 }
 
-body.dark-mode #clear-button,
 body.dark-mode #send-button,
+body.dark-mode #clear-button,
 body.dark-mode #change-api-key-button,
 body.dark-mode #save-api-key-button,
 body.dark-mode #theme-toggle {
@@ -410,11 +429,8 @@ body.dark-mode #theme-toggle {
   color: #e0e0e0;
 }
 
-body.dark-mode #clear-button:hover,
 body.dark-mode #send-button:hover,
-body.dark-mode #change-api-key-button:hover,
-body.dark-mode #save-api-key-button:hover,
-body.dark-mode #theme-toggle:hover {
+body.dark-mode #clear-button:hover {
   background-color: #555;
 }
 
@@ -447,4 +463,37 @@ body.dark-mode .saved-page-title,
 body.dark-mode .remove-page,
 body.dark-mode .api-key-info {
   color: #bbbbbb;
+} 
+
+/* Tooltip styling */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 50%;
+  transform: translateX(50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 100;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+}
+
+/* Dark mode tooltip background */
+body.dark-mode .tooltip::after {
+  background-color: rgba(255, 255, 255, 0.85);
+  color: #000;
 } 

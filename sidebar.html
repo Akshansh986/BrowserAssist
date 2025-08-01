@@ -9,7 +9,6 @@
   <div class="container">
     <div class="header">
       <h1>Browser Assist</h1>
-      <button id="clear-button" title="Clear conversation">Clear</button>
       <button id="theme-toggle" title="Toggle theme">🌙</button>
       <button id="change-api-key-button" class="toggle-button" style="display:none;">Change API Key</button>
     </div>
@@ -40,7 +39,10 @@
       </div>
       <div class="input-container">
         <textarea id="user-input" placeholder="Type your message here..."></textarea>
-        <button id="send-button">Send</button>
+        <div class="action-buttons">
+          <button id="clear-button" class="tooltip" data-tooltip="Clear conversation">🗑️</button>
+          <button id="send-button" class="tooltip" data-tooltip="Send">➤</button>
+        </div>
       </div>
     </div>
   </div>
