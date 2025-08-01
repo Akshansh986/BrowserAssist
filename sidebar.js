@@ -81,10 +81,21 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyTheme(theme) {
     if (theme === 'dark') {
       document.body.classList.add('dark-mode');
-      if (themeToggle) themeToggle.textContent = '☀︎';
+      if (themeToggle) {
+        themeToggle.textContent = '☀︎';
+        themeToggle.setAttribute('data-tooltip', 'Switch to light mode');
+      }
     } else {
       document.body.classList.remove('dark-mode');
-      if (themeToggle) themeToggle.textContent = '🌙';
+      if (themeToggle) {
+        themeToggle.textContent = '🌙';
+        themeToggle.setAttribute('data-tooltip', 'Switch to dark mode');
+      }
+    }
+
+    // Add tooltip class to theme toggle
+    if (themeToggle) {
+      themeToggle.classList.add('tooltip', 'tooltip-left');
     }
   }
 
