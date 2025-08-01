@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatContainer = document.getElementById('chat-container');
   const userInput = document.getElementById('user-input');
   const sendButton = document.getElementById('send-button');
-  const webpageCheckbox = document.getElementById('include-webpage');
   const webpageTitle = document.getElementById('webpage-title');
   const savedPagesContainer = document.getElementById('saved-pages-container');
   const clearButton = document.getElementById('clear-button');
@@ -180,13 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     savedWebpages.forEach((page, index) => {
       const pageItem = document.createElement('div');
       pageItem.className = 'saved-page-item';
-      
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = page.selected;
-      checkbox.addEventListener('change', () => {
-        savedWebpages[index].selected = checkbox.checked;
-      });
+      pageItem.classList.add('selected'); // All saved pages are always selected
       
       const titleSpan = document.createElement('span');
       titleSpan.className = 'saved-page-title';
@@ -204,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
         checkCurrentPageStatus();
       });
       
-      pageItem.appendChild(checkbox);
       pageItem.appendChild(titleSpan);
       pageItem.appendChild(removeButton);
       
@@ -212,24 +204,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Check if current page is already saved
+  // Check if current page is already saved and update UI accordingly
   function checkCurrentPageStatus() {
     if (!currentWebpageInfo.url) return;
     
-    const alreadySaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
+    const existingPage = savedWebpages.find(page => page.url === currentWebpageInfo.url);
     
-    // Always enable the checkbox, even if already saved
-    webpageCheckbox.disabled = false;
-    
-    // If already saved, check the checkbox if the saved version is selected
-    if (alreadySaved) {
-      const savedPage = savedWebpages.find(page => page.url === currentWebpageInfo.url);
-      webpageCheckbox.checked = savedPage.selected;
-      webpageTitle.textContent = `Include "${currentWebpageInfo.title}"`;
+    if (existingPage) {
+      webpageTitle.textContent = `Remove "${currentWebpageInfo.title}"`;
+      webpageTitle.classList.add('active');
     } else {
-      webpageCheckbox.checked = false;
-      webpageTitle.textContent = `Include "${currentWebpageInfo.title}"`;
+      webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
+      webpageTitle.classList.remove('active');
     }
+  }
+
+  // Toggle current webpage inclusion
+  function toggleCurrentWebpage() {
+    const existingPageIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
+    
+    if (existingPageIndex === -1) {
+      // Add new page
+      savedWebpages.push({
+        title: currentWebpageInfo.title,
+        url: currentWebpageInfo.url,
+        tabId: currentWebpageInfo.tabId,
+        addedAt: new Date().toISOString()
+      });
+      webpageTitle.classList.add('active');
+      webpageTitle.textContent = `Remove "${currentWebpageInfo.title}"`;
+    } else {
+      // Remove existing page
+      savedWebpages.splice(existingPageIndex, 1);
+      webpageTitle.classList.remove('active');
+      webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
+    }
+    
+    renderSavedWebpages();
   }
   
   // Get current tab information
@@ -341,44 +352,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if webpage is already saved
     const existingIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
     
-    if (existingIndex !== -1) {
-      // Update existing page
-      savedWebpages[existingIndex].title = currentWebpageInfo.title;
-      savedWebpages[existingIndex].selected = true;
-      savedWebpages[existingIndex].tabId = currentWebpageInfo.tabId;
-    } else {
+    if (existingIndex === -1) {
       // Add new webpage (metadata only)
       savedWebpages.push({
         title: currentWebpageInfo.title,
         url: currentWebpageInfo.url,
         tabId: currentWebpageInfo.tabId,
-        selected: true,
         addedAt: new Date().toISOString()
       });
     }
     
+    // Update the UI to reflect the webpage's active state
+    webpageTitle.classList.add('active');
+    webpageTitle.textContent = `Remove "${currentWebpageInfo.title}"`;
     renderSavedWebpages();
   }
-  
-  // Handle webpage checkbox changes
-  function handleWebpageCheckboxChange() {
-    const isCurrentPageSaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
-    
-    if (webpageCheckbox.checked) {
-      // Save the webpage metadata immediately
-      saveCurrentWebpage();
-    } else {
-      // If unchecking and it's saved, update selection status
-      if (isCurrentPageSaved) {
-        const pageIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
-        if (pageIndex !== -1) {
-          savedWebpages[pageIndex].selected = false;
-          renderSavedWebpages();
-        }
-      }
-    }
-  }
-  
+
   // Handle tab removal
   function handleTabRemoval(tabId) {
     // Find and remove any saved pages associated with this tab
@@ -417,14 +406,15 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCurrentTabInfo();
   renderSavedWebpages();
   
+  // Add click event listener for webpage title
+  webpageTitle.addEventListener('click', toggleCurrentWebpage);
+  
   // Update tab info when sidebar is focused
   window.addEventListener('focus', () => {
     updateCurrentTabInfo();
     console.log('Sidebar focused, updating tab info');
   });
   
-  // Listen for checkbox changes
-  webpageCheckbox.addEventListener('change', handleWebpageCheckboxChange);
   
   // Add initial bot message
   addBotMessage('Hello! How can I assist you today?');
@@ -470,11 +460,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
-      // Save current webpage if it's checked and not saved yet
-      if (webpageCheckbox.checked && !savedWebpages.some(page => page.url === currentWebpageInfo.url)) {
-        saveCurrentWebpage();
-      }
-      
       // Add user message to conversation history
       conversationHistory.push({ role: 'user', content: message });
       
@@ -496,27 +481,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Permission request failed:', error);
       }
       
-      // Get selected webpages and fetch their content
-      const selectedWebpages = savedWebpages.filter(page => page.selected);
+      // Get saved webpages and fetch their content
       let contextContent = '';
       
-      // Add current tab to the selected webpages if it's checked but not in savedWebpages
-      const isCurrentPageSaved = savedWebpages.some(page => page.url === currentWebpageInfo.url);
-      if (webpageCheckbox.checked && !isCurrentPageSaved && currentWebpageInfo.tabId) {
-        selectedWebpages.push({
-          title: currentWebpageInfo.title,
-          url: currentWebpageInfo.url,
-          tabId: currentWebpageInfo.tabId,
-          selected: true
-        });
-      }
-      
-      if (selectedWebpages.length > 0) {
+      if (savedWebpages.length > 0) {
         contextContent = `The user is browsing the following webpages:\n\n`;
         
-        // Fetch content for all selected pages
-        for (let i = 0; i < selectedWebpages.length; i++) {
-          const page = selectedWebpages[i];
+        // Fetch content for all saved pages
+        for (let i = 0; i < savedWebpages.length; i++) {
+          const page = savedWebpages[i];
           let content = '';
           
           console.log(`Attempting to fetch content for tab ${page.tabId} (${page.title})`);
@@ -695,18 +668,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // Add the initial message to history
       conversationHistory.push({ role: 'assistant', content: 'Hello! How can I assist you today?' });
       
-      // Uncheck the current webpage checkbox
-      webpageCheckbox.checked = false;
+      // Update webpage title display
+      webpageTitle.classList.remove('active');
       
-      // Deselect all saved webpages
-      savedWebpages.forEach(page => {
-        page.selected = false;
-      });
-      
-      // Re-render saved webpages to update UI
+      // Clear all saved webpages
+      savedWebpages = [];
       renderSavedWebpages();
       
-      console.log('Conversation cleared successfully and pages deselected');
+      console.log('Conversation cleared successfully and pages removed');
     } catch (error) {
       console.error('Error clearing conversation:', error);
     }
