@@ -209,20 +209,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!currentWebpageInfo.url) return;
     
     const existingPage = includedPages.find(page => page.url === currentWebpageInfo.url);
+    const currentPageDiv = document.querySelector('.current-page');
     
     if (existingPage) {
-      // Hide the add button if page is already included
-      webpageTitle.style.display = 'none';
+      // Hide the entire current page section if page is already included
+      if (currentPageDiv) currentPageDiv.style.display = 'none';
     } else {
-      // Show the add button if page is not included
+      // Show the current page section if page is not included
+      if (currentPageDiv) currentPageDiv.style.display = 'block';
       webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
-      webpageTitle.style.display = 'block';
     }
   }
 
   // Add current webpage
   function toggleCurrentWebpage() {
     const existingPageIndex = includedPages.findIndex(page => page.url === currentWebpageInfo.url);
+    const currentPageDiv = document.querySelector('.current-page');
     
     if (existingPageIndex === -1) {
       // Add new page
@@ -233,8 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
         addedAt: new Date().toISOString()
       });
       
-      // Hide the add button after adding
-      webpageTitle.style.display = 'none';
+      // Hide the entire current page section after adding
+      if (currentPageDiv) currentPageDiv.style.display = 'none';
     }
     
     renderIncludedPages();
@@ -668,10 +670,11 @@ document.addEventListener('DOMContentLoaded', () => {
       includedPages = [];
       renderIncludedPages();
       
-      // Show the add button again
-      if (currentWebpageInfo.url) {
+      // Show the current page section again
+      const currentPageDiv = document.querySelector('.current-page');
+      if (currentPageDiv && currentWebpageInfo.url) {
+        currentPageDiv.style.display = 'block';
         webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
-        webpageTitle.style.display = 'block';
       }
       
       console.log('Conversation cleared successfully and pages removed');
