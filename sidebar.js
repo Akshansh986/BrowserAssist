@@ -67,8 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (changeApiKeyButton) {
         changeApiKeyButton.style.display = 'inline-block';
         changeApiKeyButton.textContent = '🔑';
-        changeApiKeyButton.className = 'toggle-button tooltip tooltip-left';
-        changeApiKeyButton.setAttribute('data-tooltip', 'Change API Key');
       }
     } else {
       if (mainUi) mainUi.style.display = 'none';
@@ -81,21 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyTheme(theme) {
     if (theme === 'dark') {
       document.body.classList.add('dark-mode');
-      if (themeToggle) {
-        themeToggle.textContent = '☀︎';
-        themeToggle.setAttribute('data-tooltip', 'Switch to light mode');
-      }
+      if (themeToggle) themeToggle.textContent = '☀︎';
     } else {
       document.body.classList.remove('dark-mode');
-      if (themeToggle) {
-        themeToggle.textContent = '🌙';
-        themeToggle.setAttribute('data-tooltip', 'Switch to dark mode');
-      }
-    }
-
-    // Add tooltip class to theme toggle
-    if (themeToggle) {
-      themeToggle.classList.add('tooltip', 'tooltip-left');
+      if (themeToggle) themeToggle.textContent = '🌙';
     }
   }
 
@@ -144,11 +131,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isVisible) {
         apiKeySection.style.display = 'none';
         changeApiKeyButton.textContent = '🔑';
-        changeApiKeyButton.setAttribute('data-tooltip', 'Change API Key');
       } else {
         apiKeySection.style.display = 'block';
         changeApiKeyButton.textContent = '✕';
-        changeApiKeyButton.setAttribute('data-tooltip', 'Cancel');
       }
     });
   }
