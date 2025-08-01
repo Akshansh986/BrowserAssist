@@ -5,8 +5,8 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  background-color: #f7f9fc;
   height: 100vh;
 }
 
@@ -18,7 +18,7 @@ body {
 }
 
 .header {
-  background-color: #10a37f;
+  background-color: #1e88e5;
   color: white;
   padding: 12px 16px;
   text-align: center;
@@ -26,10 +26,12 @@ body {
   justify-content: space-between;
   align-items: center;
   position: relative;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 
 .header h1 {
-  font-size: 18px;
+  font-size: 19px;
+  font-weight: 600;
   margin: 0;
   position: absolute;
   left: 50%;
@@ -121,7 +123,7 @@ body {
 }
 
 .bot-message blockquote {
-  border-left: 3px solid #10a37f;
+  border-left: 3px solid #1e88e5;
   padding-left: 10px;
   margin-left: 10px;
   color: #555;
@@ -227,10 +229,9 @@ body {
   margin-top: 8px;
 }
 
-#send-button,
-#clear-button {
+#send-button {
   padding: 6px 14px;
-  background-color: #10a37f;
+  background-color: #1e88e5;
   color: white;
   border: none;
   border-radius: 4px;
@@ -239,17 +240,22 @@ body {
   line-height: 1;
 }
 
-#send-button:hover,
-#clear-button:hover {
-  background-color: #0d8a6c;
+#send-button:hover {
+  background-color: #1565c0;
 }
 
 #clear-button {
-  background-color: #e74c3c; /* red tint */
+  padding: 6px 14px;
+  background: transparent;
+  color: #e74c3c;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
 }
 
 #clear-button:hover {
-  background-color: #c0392b;
+  color: #c0392b;
 }
 
 #user-input {
@@ -273,7 +279,7 @@ body {
 .typing-indicator span {
   height: 8px;
   width: 8px;
-  background-color: #10a37f;
+  background-color: #1e88e5;
   border-radius: 50%;
   display: inline-block;
   margin-right: 5px;
@@ -305,7 +311,7 @@ body {
 /* API Key Section Styles */
 .api-key-section {
   padding: 16px 20px;
-  background-color: #f0f7f4;
+  background-color: #f0f4fa;
   border-top: 1px solid #ddd;
   font-size: 14px;
 }
@@ -319,7 +325,7 @@ body {
 }
 
 .key-saved {
-  color: #10a37f;
+  color: #1e88e5;
   font-weight: bold;
 }
 
@@ -362,7 +368,7 @@ body {
 }
 
 #save-api-key-button {
-  background-color: #10a37f;
+  background-color: #1e88e5;
   color: white;
   border: none;
   border-radius: 4px;
@@ -372,7 +378,7 @@ body {
 }
 
 #save-api-key-button:hover {
-  background-color: #0d8a6c;
+  background-color: #1565c0;
 } 
 
 /* Main UI wrapper for when API key is present */
@@ -385,12 +391,12 @@ body {
 
 /* Change API Key button styling similar to Clear button */
 #change-api-key-button {
-  background-color: #0d8a6c;
+  background-color: #1e88e5;
   color: white;
 }
 
 #change-api-key-button:hover {
-  background-color: #0a7255;
+  background-color: #1565c0;
 } 
 
 /* Theme toggle button */
@@ -417,53 +423,64 @@ body.dark-mode {
 }
 
 body.dark-mode .header {
-  background-color: #333;
+  background-color: #0d47a1;
 }
 
-body.dark-mode #send-button,
+#send-button,
+#clear-button {
+  /* Keep default colors in light mode handled above */
+}
+
+body.dark-mode #send-button {
+  background-color: #1976d2;
+}
+
+body.dark-mode #send-button:hover {
+  background-color: #0d47a1;
+}
+
+body.dark-mode .typing-indicator span {
+  background-color: #1e88e5;
+}
+
+body.dark-mode .bot-message blockquote {
+  border-left: 3px solid #1e88e5;
+}
+
 body.dark-mode #clear-button,
 body.dark-mode #change-api-key-button,
 body.dark-mode #save-api-key-button,
 body.dark-mode #theme-toggle {
-  background-color: #444;
   color: #e0e0e0;
 }
 
-body.dark-mode #send-button:hover,
+#clear-button {
+  background: transparent;
+  color: #ff7676;
+}
+
 body.dark-mode #clear-button:hover {
-  background-color: #555;
+  color: #ff4c4c;
 }
 
-body.dark-mode .chat-container {
-  background-color: #1e1e1e;
+body.dark-mode #change-api-key-button,
+body.dark-mode #save-api-key-button {
+  background-color: #1976d2;
 }
 
-body.dark-mode .user-message {
-  background-color: #2e3b4e;
+body.dark-mode #change-api-key-button:hover,
+body.dark-mode #save-api-key-button:hover {
+  background-color: #0d47a1;
 }
 
-body.dark-mode .bot-message {
-  background-color: #2c2c2c;
+/* Override any legacy hover background on clear button */
+#clear-button:hover {
+  background: transparent !important;
 }
 
-body.dark-mode .webpage-context,
-body.dark-mode .api-key-section,
-body.dark-mode .input-container {
-  background-color: #1c1c1c;
-  border-top: 1px solid #333;
+body.dark-mode #clear-button:hover {
+  background: transparent !important;
 }
-
-body.dark-mode #user-input {
-  background-color: #2b2b2b;
-  color: #e0e0e0;
-  border-color: #444;
-}
-
-body.dark-mode .saved-page-title,
-body.dark-mode .remove-page,
-body.dark-mode .api-key-info {
-  color: #bbbbbb;
-} 
 
 /* Tooltip styling */
 .tooltip {
