@@ -210,16 +210,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const existingPage = savedWebpages.find(page => page.url === currentWebpageInfo.url);
     
-    if (existingPage) {
-      webpageTitle.textContent = `Remove "${currentWebpageInfo.title}"`;
-      webpageTitle.classList.add('active');
-    } else {
-      webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
-      webpageTitle.classList.remove('active');
-    }
+    webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
+    webpageTitle.classList.toggle('active', existingPage !== undefined);
   }
 
-  // Toggle current webpage inclusion
+  // Add current webpage
   function toggleCurrentWebpage() {
     const existingPageIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
     
@@ -232,12 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
         addedAt: new Date().toISOString()
       });
       webpageTitle.classList.add('active');
-      webpageTitle.textContent = `Remove "${currentWebpageInfo.title}"`;
-    } else {
-      // Remove existing page
-      savedWebpages.splice(existingPageIndex, 1);
-      webpageTitle.classList.remove('active');
-      webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
     }
     
     renderSavedWebpages();
@@ -364,7 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Update the UI to reflect the webpage's active state
     webpageTitle.classList.add('active');
-    webpageTitle.textContent = `Remove "${currentWebpageInfo.title}"`;
     renderSavedWebpages();
   }
 
