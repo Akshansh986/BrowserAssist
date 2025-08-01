@@ -169,6 +169,15 @@ body {
   border-bottom: 1px dashed #ddd;
 }
 
+.included-pages-header {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #eee;
+}
+
 .saved-page-item {
   display: flex;
   align-items: center;

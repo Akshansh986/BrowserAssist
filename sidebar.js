@@ -161,25 +161,25 @@ document.addEventListener('DOMContentLoaded', () => {
     tabId: null
   };
   
-  // Saved webpages array - now only storing metadata, not content
-  let savedWebpages = [];
+  // Included webpages array - now only storing metadata, not content
+  let includedPages = [];
   
-  // Render saved webpages in the UI
-  function renderSavedWebpages() {
+  // Render included webpages in the UI
+  function renderIncludedPages() {
     savedPagesContainer.innerHTML = '';
     
-    if (savedWebpages.length === 0) {
+    if (includedPages.length === 0) {
       const emptyMessage = document.createElement('div');
       emptyMessage.className = 'empty-pages-message';
-      emptyMessage.textContent = 'No saved webpages yet';
+      emptyMessage.textContent = 'No pages included yet';
       savedPagesContainer.appendChild(emptyMessage);
       return;
     }
     
-    savedWebpages.forEach((page, index) => {
+    includedPages.forEach((page, index) => {
       const pageItem = document.createElement('div');
       pageItem.className = 'saved-page-item';
-      pageItem.classList.add('selected'); // All saved pages are always selected
+      pageItem.classList.add('selected'); // All included pages are always selected
       
       const titleSpan = document.createElement('span');
       titleSpan.className = 'saved-page-title';
@@ -192,8 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
       removeButton.title = 'Remove this page';
       removeButton.addEventListener('click', (e) => {
         e.stopPropagation();
-        savedWebpages.splice(index, 1);
-        renderSavedWebpages();
+        includedPages.splice(index, 1);
+        renderIncludedPages();
         checkCurrentPageStatus();
       });
       
@@ -204,17 +204,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Check if current page is already saved and update UI accordingly
+  // Check if current page is already included and update UI accordingly
   function checkCurrentPageStatus() {
     if (!currentWebpageInfo.url) return;
     
-    const existingPage = savedWebpages.find(page => page.url === currentWebpageInfo.url);
+    const existingPage = includedPages.find(page => page.url === currentWebpageInfo.url);
     
     if (existingPage) {
-      // Hide the add button if page is already saved
+      // Hide the add button if page is already included
       webpageTitle.style.display = 'none';
     } else {
-      // Show the add button if page is not saved
+      // Show the add button if page is not included
       webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
       webpageTitle.style.display = 'block';
     }
@@ -222,11 +222,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Add current webpage
   function toggleCurrentWebpage() {
-    const existingPageIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
+    const existingPageIndex = includedPages.findIndex(page => page.url === currentWebpageInfo.url);
     
     if (existingPageIndex === -1) {
       // Add new page
-      savedWebpages.push({
+      includedPages.push({
         title: currentWebpageInfo.title,
         url: currentWebpageInfo.url,
         tabId: currentWebpageInfo.tabId,
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
       webpageTitle.style.display = 'none';
     }
     
-    renderSavedWebpages();
+    renderIncludedPages();
   }
   
   // Get current tab information
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentWebpageInfo.url = activeTab.url || '';
         currentWebpageInfo.tabId = activeTab.id;
         
-        // Update the button visibility and text based on whether the page is saved
+        // Update the button visibility and text based on whether the page is included
         checkCurrentPageStatus();
       }
     });
@@ -346,12 +346,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function saveCurrentWebpage() {
     if (!currentWebpageInfo.url) return;
     
-    // Check if webpage is already saved
-    const existingIndex = savedWebpages.findIndex(page => page.url === currentWebpageInfo.url);
+    // Check if webpage is already included
+    const existingIndex = includedPages.findIndex(page => page.url === currentWebpageInfo.url);
     
     if (existingIndex === -1) {
       // Add new webpage (metadata only)
-      savedWebpages.push({
+      includedPages.push({
         title: currentWebpageInfo.title,
         url: currentWebpageInfo.url,
         tabId: currentWebpageInfo.tabId,
@@ -361,15 +361,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Update the UI to reflect the webpage's active state
     webpageTitle.classList.add('active');
-    renderSavedWebpages();
+    renderIncludedPages();
   }
 
   // Handle tab removal
   function handleTabRemoval(tabId) {
-    // Find and remove any saved pages associated with this tab
+    // Find and remove any included pages associated with this tab
     const pagesToRemove = [];
     
-    savedWebpages.forEach((page, index) => {
+    includedPages.forEach((page, index) => {
       if (page.tabId === tabId) {
         pagesToRemove.push(index);
       }
@@ -377,11 +377,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Remove pages in reverse order to avoid index shifting issues
     for (let i = pagesToRemove.length - 1; i >= 0; i--) {
-      savedWebpages.splice(pagesToRemove[i], 1);
+      includedPages.splice(pagesToRemove[i], 1);
     }
     
     if (pagesToRemove.length > 0) {
-      renderSavedWebpages();
+      renderIncludedPages();
     }
   }
   
@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize the extension
   updateCurrentTabInfo();
-  renderSavedWebpages();
+  renderIncludedPages();
   
   // Add click event listener for webpage title
   webpageTitle.addEventListener('click', toggleCurrentWebpage);
@@ -477,15 +477,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Permission request failed:', error);
       }
       
-      // Get saved webpages and fetch their content
+      // Get included webpages and fetch their content
       let contextContent = '';
       
-      if (savedWebpages.length > 0) {
+      if (includedPages.length > 0) {
         contextContent = `The user is browsing the following webpages:\n\n`;
         
-        // Fetch content for all saved pages
-        for (let i = 0; i < savedWebpages.length; i++) {
-          const page = savedWebpages[i];
+        // Fetch content for all included pages
+        for (let i = 0; i < includedPages.length; i++) {
+          const page = includedPages[i];
           let content = '';
           
           console.log(`Attempting to fetch content for tab ${page.tabId} (${page.title})`);
@@ -664,9 +664,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Add the initial message to history
       conversationHistory.push({ role: 'assistant', content: 'Hello! How can I assist you today?' });
       
-      // Clear all saved webpages
-      savedWebpages = [];
-      renderSavedWebpages();
+      // Clear all included webpages
+      includedPages = [];
+      renderIncludedPages();
       
       // Show the add button again
       if (currentWebpageInfo.url) {
