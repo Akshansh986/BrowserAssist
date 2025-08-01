@@ -210,8 +210,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const existingPage = savedWebpages.find(page => page.url === currentWebpageInfo.url);
     
-    webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
-    webpageTitle.classList.toggle('active', existingPage !== undefined);
+    if (existingPage) {
+      // Hide the add button if page is already saved
+      webpageTitle.style.display = 'none';
+    } else {
+      // Show the add button if page is not saved
+      webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
+      webpageTitle.style.display = 'block';
+    }
   }
 
   // Add current webpage
@@ -226,7 +232,9 @@ document.addEventListener('DOMContentLoaded', () => {
         tabId: currentWebpageInfo.tabId,
         addedAt: new Date().toISOString()
       });
-      webpageTitle.classList.add('active');
+      
+      // Hide the add button after adding
+      webpageTitle.style.display = 'none';
     }
     
     renderSavedWebpages();
@@ -245,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentWebpageInfo.url = activeTab.url || '';
         currentWebpageInfo.tabId = activeTab.id;
         
-        // Update the checkbox label with the webpage title and check status
+        // Update the button visibility and text based on whether the page is saved
         checkCurrentPageStatus();
       }
     });
@@ -656,12 +664,15 @@ document.addEventListener('DOMContentLoaded', () => {
       // Add the initial message to history
       conversationHistory.push({ role: 'assistant', content: 'Hello! How can I assist you today?' });
       
-      // Update webpage title display
-      webpageTitle.classList.remove('active');
-      
       // Clear all saved webpages
       savedWebpages = [];
       renderSavedWebpages();
+      
+      // Show the add button again
+      if (currentWebpageInfo.url) {
+        webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
+        webpageTitle.style.display = 'block';
+      }
       
       console.log('Conversation cleared successfully and pages removed');
     } catch (error) {
