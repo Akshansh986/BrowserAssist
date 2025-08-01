@@ -20,12 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const changeApiKeyButton = document.getElementById('change-api-key-button');
   const apiKeySection = document.querySelector('.api-key-section');
   const mainUi = document.getElementById('main-ui');
+  const themeToggle = document.getElementById('theme-toggle');
   
   // Store API key
   let openaiApiKey = '';
   
   // Load API key on startup
   loadApiKey();
+  // Load theme preference on startup
+  loadTheme();
   
   // Function to load API key from storage
   function loadApiKey() {
@@ -68,6 +71,34 @@ document.addEventListener('DOMContentLoaded', () => {
       if (apiKeySection) apiKeySection.style.display = 'block';
       if (changeApiKeyButton) changeApiKeyButton.style.display = 'none';
     }
+  }
+  
+  // -------- Theme (Dark / Light) Handling --------
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      document.body.classList.add('dark-mode');
+      if (themeToggle) themeToggle.textContent = '☀︎';
+    } else {
+      document.body.classList.remove('dark-mode');
+      if (themeToggle) themeToggle.textContent = '🌙';
+    }
+  }
+
+  function loadTheme() {
+    chrome.storage.local.get(['theme'], (result) => {
+      const storedTheme = result.theme || 'light';
+      applyTheme(storedTheme);
+    });
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.contains('dark-mode');
+      const newTheme = isDark ? 'light' : 'dark';
+      chrome.storage.local.set({ theme: newTheme }, () => {
+        applyTheme(newTheme);
+      });
+    });
   }
   
   // Event listener for saving API key

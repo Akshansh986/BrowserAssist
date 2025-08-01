@@ -20,16 +20,20 @@ body {
 .header {
   background-color: #10a37f;
   color: white;
-  padding: 10px;
+  padding: 12px 16px;
   text-align: center;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 
 .header h1 {
   font-size: 18px;
   margin: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 #clear-button {
@@ -281,15 +285,16 @@ body {
 
 /* API Key Section Styles */
 .api-key-section {
-  padding: 8px 10px;
+  padding: 16px 20px;
   background-color: #f0f7f4;
   border-top: 1px solid #ddd;
   font-size: 14px;
 }
 
 .api-key-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
   align-items: center;
   margin-bottom: 8px;
 }
@@ -323,6 +328,7 @@ body {
 
 #api-key-input {
   flex: 1;
+  min-width: 0;
   padding: 6px 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -332,7 +338,7 @@ body {
 .api-key-info {
   font-size: 12px;
   color: #666;
-  margin-top: 4px;
+  margin-top: 8px;
   font-style: italic;
 }
 
@@ -366,4 +372,79 @@ body {
 
 #change-api-key-button:hover {
   background-color: #0a7255;
+} 
+
+/* Theme toggle button */
+#theme-toggle {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: auto; /* push to far right in flex layout */
+  margin-right: 0;
+}
+
+#theme-toggle:hover {
+  background-color: #d0d0d0;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-mode .header {
+  background-color: #333;
+}
+
+body.dark-mode #clear-button,
+body.dark-mode #send-button,
+body.dark-mode #change-api-key-button,
+body.dark-mode #save-api-key-button,
+body.dark-mode #theme-toggle {
+  background-color: #444;
+  color: #e0e0e0;
+}
+
+body.dark-mode #clear-button:hover,
+body.dark-mode #send-button:hover,
+body.dark-mode #change-api-key-button:hover,
+body.dark-mode #save-api-key-button:hover,
+body.dark-mode #theme-toggle:hover {
+  background-color: #555;
+}
+
+body.dark-mode .chat-container {
+  background-color: #1e1e1e;
+}
+
+body.dark-mode .user-message {
+  background-color: #2e3b4e;
+}
+
+body.dark-mode .bot-message {
+  background-color: #2c2c2c;
+}
+
+body.dark-mode .webpage-context,
+body.dark-mode .api-key-section,
+body.dark-mode .input-container {
+  background-color: #1c1c1c;
+  border-top: 1px solid #333;
+}
+
+body.dark-mode #user-input {
+  background-color: #2b2b2b;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+body.dark-mode .saved-page-title,
+body.dark-mode .remove-page,
+body.dark-mode .api-key-info {
+  color: #bbbbbb;
 } 
