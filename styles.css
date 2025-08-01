@@ -505,6 +505,13 @@ body.dark-mode #clear-button:hover {
   z-index: 100;
 }
 
+/* Left-positioned tooltip */
+.tooltip-left::after {
+  bottom: 50%;
+  right: calc(100% + 6px);
+  transform: translateY(50%);
+}
+
 .tooltip:hover::after {
   opacity: 1;
 }

@@ -64,8 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (keyExists) {
       if (mainUi) mainUi.style.display = 'flex';
       if (apiKeySection) apiKeySection.style.display = 'none';
-      if (changeApiKeyButton) changeApiKeyButton.style.display = 'inline-block';
-      if (changeApiKeyButton) changeApiKeyButton.textContent = 'Change API Key';
+      if (changeApiKeyButton) {
+        changeApiKeyButton.style.display = 'inline-block';
+        changeApiKeyButton.textContent = '🔑';
+        changeApiKeyButton.className = 'toggle-button tooltip tooltip-left';
+        changeApiKeyButton.setAttribute('data-tooltip', 'Change API Key');
+      }
     } else {
       if (mainUi) mainUi.style.display = 'none';
       if (apiKeySection) apiKeySection.style.display = 'block';
@@ -128,10 +132,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const isVisible = apiKeySection.style.display !== 'none';
       if (isVisible) {
         apiKeySection.style.display = 'none';
-        changeApiKeyButton.textContent = 'Change API Key';
+        changeApiKeyButton.textContent = '🔑';
+        changeApiKeyButton.setAttribute('data-tooltip', 'Change API Key');
       } else {
         apiKeySection.style.display = 'block';
-        changeApiKeyButton.textContent = 'Cancel';
+        changeApiKeyButton.textContent = '✕';
+        changeApiKeyButton.setAttribute('data-tooltip', 'Cancel');
       }
     });
   }
