@@ -109,12 +109,20 @@ body {
   font-family: monospace;
 }
 
+body.dark-mode .bot-message code {
+  background-color: #333;
+}
+
 .bot-message pre {
   background-color: #f8f8f8;
   padding: 10px;
   border-radius: 5px;
   overflow-x: auto;
   margin: 10px 0;
+}
+
+body.dark-mode .bot-message pre {
+  background-color: #2a2a2a;
 }
 
 .bot-message pre code {
@@ -177,6 +185,11 @@ body {
   border-bottom: 1px solid #eee;
 }
 
+body.dark-mode .included-pages-header {
+  color: #bbb;
+  border-bottom: 1px solid #333;
+}
+
 .saved-page-item {
   display: flex;
   align-items: center;
@@ -193,6 +206,10 @@ body.dark-mode .saved-page-item:hover {
 
 body.dark-mode .saved-page-item.selected {
   background-color: #1e3a5f;
+}
+
+body.dark-mode .saved-page-item {
+  color: #e0e0e0;
 }
 
 .saved-page-item input {
@@ -349,12 +366,22 @@ body.dark-mode .clickable-title.active {
   padding: 5px 0;
 }
 
+body.dark-mode .empty-pages-message {
+  color: #777;
+}
+
 /* API Key Section Styles */
 .api-key-section {
   padding: 16px 20px;
   background-color: #f0f4fa;
   border-top: 1px solid #ddd;
   font-size: 14px;
+}
+
+body.dark-mode .api-key-section {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-top: 1px solid #333;
 }
 
 .api-key-header {
@@ -401,11 +428,21 @@ body.dark-mode .clickable-title.active {
   font-size: 13px;
 }
 
+body.dark-mode #api-key-input {
+  background-color: #2d2d2d;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
 .api-key-info {
   font-size: 12px;
   color: #666;
   margin-top: 8px;
   font-style: italic;
+}
+
+body.dark-mode .api-key-info {
+  color: #aaa;
 }
 
 #save-api-key-button {
@@ -443,11 +480,11 @@ body.dark-mode .clickable-title.active {
 /* Theme toggle button */
 #theme-toggle {
   background-color: transparent;
-  color: #333;
+  color: white;
   border: none;
   border-radius: 4px;
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: 16px;
   cursor: pointer;
   margin-left: auto; /* push to far right in flex layout */
   margin-right: 0;
@@ -472,6 +509,33 @@ body.dark-mode .header {
   background-color: #0d47a1;
 }
 
+body.dark-mode .input-container {
+  background-color: #1e1e1e;
+  border-top: 1px solid #333;
+}
+
+body.dark-mode #user-input {
+  background-color: #2d2d2d;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+body.dark-mode .webpage-context {
+  background-color: #1a1a1a;
+  border-top: 1px solid #333;
+  color: #e0e0e0;
+}
+
+body.dark-mode .user-message {
+  background-color: #0d47a1;
+  color: #ffffff;
+}
+
+body.dark-mode .bot-message {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
 #send-button,
 #clear-button {
   /* Keep default colors in light mode handled above */
@@ -490,7 +554,8 @@ body.dark-mode .typing-indicator span {
 }
 
 body.dark-mode .bot-message blockquote {
-  border-left: 3px solid #0d47a1;
+  border-left: 3px solid #1976d2;
+  color: #bbb;
 }
 
 body.dark-mode #clear-button,
