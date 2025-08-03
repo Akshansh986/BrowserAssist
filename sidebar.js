@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     includedPages.forEach((page, index) => {
       const pageItem = document.createElement('div');
       pageItem.className = 'saved-page-item';
-      pageItem.classList.add('selected'); // All included pages are always selected
+      // All included pages are always in the list but no longer need visual selection
       
       const titleSpan = document.createElement('span');
       titleSpan.className = 'saved-page-title';

@@ -197,15 +197,16 @@ body.dark-mode .included-pages-header {
   padding: 3px 5px;
   border-radius: 4px;
   font-style: italic;
+  background-color: transparent;
 }
 
 
 body.dark-mode .saved-page-item:hover {
-  background-color: #1a2734;
+  background-color: transparent;
 }
 
 body.dark-mode .saved-page-item.selected {
-  background-color: #1e3a5f;
+  background-color: transparent;
 }
 
 body.dark-mode .saved-page-item {
@@ -261,7 +262,7 @@ body.dark-mode .saved-page-item {
 }
 
 body.dark-mode .clickable-title:hover {
-  background-color: #1e3a5f;
+  background-color: transparent;
 }
 
 .clickable-title.active {
@@ -269,7 +270,7 @@ body.dark-mode .clickable-title:hover {
 }
 
 body.dark-mode .clickable-title.active {
-  background-color: #1e3a5f;
+  background-color: transparent;
 }
 
 .input-container {
