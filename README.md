@@ -4,6 +4,9 @@ A browser extension that embeds an AI assistant directly in your browser sidebar
 
 ![Browser Assist Logo](icons/generated-image-7.png)
 
+![Browser Assist Demo](images/BrowserAssist.png)
+*Browser Assist sidebar in action*
+
 ## Features
 
 - Chat with an AI assistant while browsing the web
