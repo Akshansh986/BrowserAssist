@@ -2,7 +2,9 @@
 
 A browser extension that embeds an AI assistant directly in your browser sidebar to help you understand and interact with web content.
 
-![Browser Assist Logo](icons/icon-7.png)
+<p align="center">
+  <img src="images/BrowserAssist.png" alt="Browser Assist Logo" />
+</p>
 
 ![Browser Assist Demo](images/BrowserAssist.png)
 *Browser Assist sidebar in action*
