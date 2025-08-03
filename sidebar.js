@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(JSON.stringify(errorData)');
+        throw new Error(JSON.stringify(errorData));
       }
 
       const reader = response.body.getReader();
