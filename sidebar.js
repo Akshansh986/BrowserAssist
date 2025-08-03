@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       // Show the current page section if page is not included
       if (currentPageDiv) currentPageDiv.style.display = 'block';
-      webpageTitle.textContent = `Add "${currentWebpageInfo.title}"`;
+      webpageTitle.textContent = `Include : "${currentWebpageInfo.title}"`;
     }
   }
 
@@ -448,16 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
       addUserMessage(message);
       userInput.value = '';
       
-      // Check if API key is provided
-      if (!openaiApiKey) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'message bot-message';
-        errorDiv.textContent = 'Please set your OpenAI API key in the API key section before sending messages.';
-        chatContainer.appendChild(errorDiv);
-        scrollToBottom();
-        return;
-      }
-      
+
       // Add user message to conversation history
       conversationHistory.push({ role: 'user', content: message });
       
@@ -534,8 +525,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       console.error('Error in sendMessage:', error);
       const errorDiv = document.createElement('div');
-      errorDiv.className = 'message bot-message';
-      errorDiv.textContent = `Error: ${error.message}`;
+      errorDiv.className = 'message bot-message error';
+      
+      // Directly use the error message from the API
+      renderMarkdown(errorDiv, `Failed to reach to Model: ${error.message}`);
       chatContainer.appendChild(errorDiv);
       scrollToBottom();
     }
@@ -567,13 +560,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Function to call ChatGPT API directly with streaming support
   async function fetchChatGPTResponseStreaming(messageElement, messageHistory) {
     try {
-      // Check if API key is provided
-      if (!openaiApiKey) {
-        messageElement.textContent = 'Error: OpenAI API key not provided. Please set your API key to use this feature.';
-        messageElement.classList.remove('streaming');
-        return;
-      }
-      
       // Add streaming class for the blinking cursor effect
       messageElement.classList.add('streaming');
       
@@ -594,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get response from OpenAI API');
+        throw new Error(JSON.stringify(errorData)');
       }
 
       const reader = response.body.getReader();
@@ -644,7 +630,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return fullContent;
     } catch (error) {
       console.error('Error calling streaming ChatGPT API:', error);
-      messageElement.textContent = `Error: ${error.message}`;
+      
+      // Directly use the error message from the API
+      renderMarkdown(messageElement, `Failed to reach to Model: ${error}`);
+      
       // Remove streaming class in case of error
       messageElement.classList.remove('streaming');
       throw error;
