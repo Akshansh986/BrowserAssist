@@ -14,15 +14,15 @@
   "action": {
     "default_title": "Open Browser Assist",
     "default_icon": {
-      "16": "icons/generated-image-1.png",
-      "24": "icons/generated-image-2.png",
-      "32": "icons/generated-image-3.png",
-      "48": "icons/generated-image-4.png",
-      "64": "icons/generated-image-5.png",
-      "96": "icons/generated-image-6.png",
-      "128": "icons/generated-image-7.png",
-      "256": "icons/generated-image-8.png",
-      "512": "icons/generated-image-9.png"
+      "16": "icons/icon-1.png",
+      "24": "icons/icon-2.png",
+      "32": "icons/icon-3.png",
+      "48": "icons/icon-4.png",
+      "64": "icons/icon-5.png",
+      "96": "icons/icon-6.png",
+      "128": "icons/icon-7.png",
+      "256": "icons/icon-8.png",
+      "512": "icons/icon-9.png"
     }
   },
   "side_panel": {
@@ -38,14 +38,14 @@
     }
   ],
   "icons": {
-    "16": "icons/generated-image-1.png",
-    "24": "icons/generated-image-2.png",
-    "32": "icons/generated-image-3.png",
-    "48": "icons/generated-image-4.png",
-    "64": "icons/generated-image-5.png",
-    "96": "icons/generated-image-6.png",
-    "128": "icons/generated-image-7.png",
-    "256": "icons/generated-image-8.png",
-    "512": "icons/generated-image-9.png"
+    "16": "icons/icon-1.png",
+    "24": "icons/icon-2.png",
+    "32": "icons/icon-3.png",
+    "48": "icons/icon-4.png",
+    "64": "icons/icon-5.png",
+    "96": "icons/icon-6.png",
+    "128": "icons/icon-7.png",
+    "256": "icons/icon-8.png",
+    "512": "icons/icon-9.png"
   }
 } 
